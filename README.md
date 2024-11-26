@@ -1,5 +1,5 @@
 <h1 align="center">FrogLight Server</h1>
-<p align="center">An Minecraft server written using <a href="https://github.com/EightFactorial/FrogLight">FrogLight</a></p>
+<p align="center">A Minecraft server written using <a href="https://github.com/EightFactorial/FrogLight">FrogLight</a></p>
 
 <p align="center">
   <img alt="License" src="https://img.shields.io/badge/license-MIT/Apache--2.0---?color=blue">
