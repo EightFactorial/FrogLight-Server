@@ -88,6 +88,8 @@ impl ConnectionListener {
         let taskpool = IoTaskPool::get();
         while let Ok((stream, socket)) = listener.accept().await {
             trace!(target: TARGET, "{socket} : Accepted connection");
+
+            // Create a connection from the stream.
             let connection = match Connection::from_async_stream(stream) {
                 Ok(conn) => conn,
                 Err(err) => {
@@ -133,9 +135,9 @@ impl ConnectionListener {
             // Send the connection request to the main thread.
             ConnectionIntent::Login | ConnectionIntent::Transfer => {
                 debug!(target: TARGET, "{socket} : Login");
-
                 let mut connection = connection.login();
 
+                // Receive the hello packet.
                 let hello = match connection.recv().await {
                     Ok(LoginServerboundPackets::LoginHello(hello)) => hello,
                     Ok(_) => {
@@ -148,6 +150,7 @@ impl ConnectionListener {
                     }
                 };
 
+                // Send the connection request to the main thread.
                 if channel
                     .send(ConnectionRequest {
                         username: hello.username,
@@ -198,7 +201,7 @@ impl ConnectionListener {
                     // Limit the number of packets to prevent spam.
                     counter += 1;
                     if counter >= 3 {
-                        break;
+                        return;
                     }
                 }
             }

@@ -47,23 +47,25 @@ impl ConnectionFilter {
     /// The reason for denying a connection from the `DenyList`.
     const DENYLIST_REASON: &str = "Connection filtered by DenyList";
 
-    /// Add a [`FilterEntry`] to the list.
+    /// Add a [`FilterEntry`] to the filter list.
     pub fn add(&mut self, entry: impl Into<FilterEntry>) { self.filters.insert(entry.into()); }
 
-    /// Add a [`FilterEntry::Username`] to the list.
+    /// Add a [`FilterEntry::Username`] to the filter list.
     pub fn add_username(&mut self, username: impl Into<CompactString>) {
         self.add(FilterEntry::Username(username.into()));
     }
 
-    /// Add a [`FilterEntry::Uuid`] to the list.
+    /// Add a [`FilterEntry::Uuid`] to the filter list.
     pub fn add_uuid(&mut self, uuid: impl Into<Uuid>) { self.add(FilterEntry::Uuid(uuid.into())); }
 
-    /// Add a [`FilterEntry::Address`] to the list.
+    /// Add a [`FilterEntry::Address`] to the filter list.
     pub fn add_address(&mut self, address: impl Into<IpAddr>) {
         self.add(FilterEntry::Address(address.into()));
     }
 
-    /// Remove a [`FilterEntry`] from the list.
+    /// Remove a [`FilterEntry`] from the filter list.
+    ///
+    /// Returns whether the entry was removed.
     pub fn remove<'a>(&mut self, entry: impl Into<FilterRef<'a>>) -> bool {
         self.filters.remove(&entry.into())
     }
@@ -109,7 +111,7 @@ impl ConnectionFilter {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, From)]
 pub enum FilterRef<'a> {
     Uuid(&'a Uuid),
-    Username(&'a CompactString),
+    Username(&'a str),
     Address(&'a IpAddr),
 }
 impl Equivalent<FilterEntry> for FilterRef<'_> {

@@ -3,10 +3,13 @@
 use bevy::prelude::*;
 
 mod filter;
-pub use filter_list::{BoxedFilter, ConnectionFilterList, FilterFn, FilterResult};
+pub use filter::{ConnectionFilter, FilterEntry, FilterMode};
 
 mod filter_list;
-pub use filter::{ConnectionFilter, FilterEntry, FilterMode};
+pub use filter_list::{BoxedFilter, ConnectionFilterList, FilterFn, FilterResult};
+
+mod ratelimit;
+pub use ratelimit::RateLimitFilter;
 
 mod request;
 
@@ -21,8 +24,12 @@ impl Plugin for ConnectionPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ConnectionFilterList>();
         app.init_resource::<ConnectionFilter>();
+        app.init_resource::<RateLimitFilter>();
 
-        // TODO: Find a proper place to schedule this
-        app.add_systems(PostUpdate, request::poll_connection_requests);
+        // TODO: Find a proper place to schedule these
+        app.add_systems(
+            PostUpdate,
+            (request::poll_connection_requests, RateLimitFilter::tick_ratelimit),
+        );
     }
 }

@@ -1,6 +1,6 @@
 use bevy::prelude::{Resource, World};
 
-use super::ConnectionFilter;
+use super::{ConnectionFilter, RateLimitFilter};
 use crate::plugin::listen::ConnectionRequest;
 
 /// A filter function that determines whether a connection should be allowed.
@@ -25,6 +25,7 @@ impl ConnectionFilterList {
     pub fn new() -> Self {
         let mut filter = Self::new_empty();
         filter.add_filter(ConnectionFilter::filter);
+        filter.add_filter(RateLimitFilter::filter);
         filter
     }
 
