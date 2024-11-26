@@ -2,23 +2,23 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::app::{App, Plugin};
 
-/// A plugin that sets up the network for the server.
+/// A plugin that sets up listening for incoming connections.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct NetworkPlugin {
+pub struct ListenerPlugin {
     /// The address the server will bind to.
     pub socket: SocketAddr,
 }
 
-impl NetworkPlugin {
+impl ListenerPlugin {
     /// The default socket address for the server.
     pub const LOCALHOST: SocketAddr =
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 25565);
 }
-impl Default for NetworkPlugin {
+impl Default for ListenerPlugin {
     fn default() -> Self { Self { socket: Self::LOCALHOST } }
 }
 
-impl Plugin for NetworkPlugin {
+impl Plugin for ListenerPlugin {
     fn build(&self, _app: &mut App) {}
 
     fn finish(&self, app: &mut App) { self.bind(app); }

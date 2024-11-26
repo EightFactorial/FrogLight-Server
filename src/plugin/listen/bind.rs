@@ -10,6 +10,7 @@ use compact_str::CompactString;
 use froglight::{
     network::versions::v1_21_0::{
         handshake::HandshakeServerboundPackets,
+        login::LoginServerboundPackets,
         play::PingResultPacket,
         status::{QueryResponsePacket, StatusServerboundPackets},
         V1_21_0,
@@ -18,6 +19,7 @@ use froglight::{
 };
 
 use super::ServerStatusArc;
+use crate::plugin::listen::TARGET;
 
 /// A listener for incoming connections.
 #[derive(Resource)]
@@ -43,6 +45,10 @@ impl ConnectionListener {
 
 /// An incoming connection request.
 pub struct ConnectionRequest {
+    /// The username of the client.
+    pub username: CompactString,
+    /// The UUID of the client.
+    pub uuid: Uuid,
     /// The protocol version of the client.
     pub protocol: i32,
     /// The server the client is connecting to.
@@ -56,12 +62,15 @@ pub struct ConnectionRequest {
 }
 
 impl ConnectionListener {
+    /// How long to wait for a connection to complete before timing out.
+    const CONNECTION_TIMEOUT: Duration = Duration::from_secs(5);
+
     /// Create a new [`ConnectionListener`] that listens on the given socket.
     ///
     /// # Errors
     /// Errors if the listener fails to bind to the socket.
     pub fn new(socket: SocketAddr, status: ServerStatusArc) -> Result<Self, std::io::Error> {
-        info!(target: "NET", "Listening at {socket}");
+        info!(target: TARGET, "Listening at {socket}");
 
         let (send, recv) = async_channel::unbounded();
         let listener = block_on(async move { TcpListener::bind(socket).await })?;
@@ -78,11 +87,11 @@ impl ConnectionListener {
     ) {
         let taskpool = IoTaskPool::get();
         while let Ok((stream, socket)) = listener.accept().await {
-            trace!(target: "NET", "{socket} : Accepted connection");
+            trace!(target: TARGET, "{socket} : Accepted connection");
             let connection = match Connection::from_async_stream(stream) {
                 Ok(conn) => conn,
                 Err(err) => {
-                    error!(target: "NET", "{socket} : {err}");
+                    error!(target: TARGET, "{socket} : {err}");
                     continue;
                 }
             };
@@ -91,7 +100,7 @@ impl ConnectionListener {
             let channel = channel.clone();
 
             // Spawn a task to handle the incoming connection.
-            // Timeout after 5 seconds.
+            // Timeout after `CONNECTION_TIMEOUT` seconds.
             taskpool
                 .spawn(async move {
                     if async_std::future::timeout(
@@ -101,15 +110,12 @@ impl ConnectionListener {
                     .await
                     .is_err()
                     {
-                        error!(target: "NET", "{socket} : Connection timed out");
+                        error!(target: TARGET, "{socket} : Connection timed out");
                     }
                 })
                 .detach();
         }
     }
-
-    /// How long to wait for a connection to complete before timing out.
-    const CONNECTION_TIMEOUT: Duration = Duration::from_secs(5);
 
     /// Handle an incoming connection.
     async fn handle_incoming(
@@ -118,33 +124,49 @@ impl ConnectionListener {
         status: ServerStatusArc,
         channel: Sender<ConnectionRequest>,
     ) {
-        let Ok(HandshakeServerboundPackets::Handshake(packet)) = connection.recv().await else {
-            error!(target: "NET", "{socket} : Failed to receive handshake packet");
+        let Ok(HandshakeServerboundPackets::Handshake(handshake)) = connection.recv().await else {
+            error!(target: TARGET, "{socket} : Failed to receive handshake packet");
             return;
         };
 
-        match packet.intent {
+        match handshake.intent {
             // Send the connection request to the main thread.
             ConnectionIntent::Login | ConnectionIntent::Transfer => {
-                debug!(target: "NET", "{socket} : Login");
+                debug!(target: TARGET, "{socket} : Login");
+
+                let mut connection = connection.login();
+
+                let hello = match connection.recv().await {
+                    Ok(LoginServerboundPackets::LoginHello(hello)) => hello,
+                    Ok(_) => {
+                        error!(target: TARGET, "{socket} : Failed to receive hello packet");
+                        return;
+                    }
+                    Err(err) => {
+                        error!(target: TARGET, "{socket} : {err}");
+                        return;
+                    }
+                };
 
                 if channel
                     .send(ConnectionRequest {
-                        protocol: packet.protocol,
-                        server: packet.address,
-                        intent: packet.intent,
+                        username: hello.username,
+                        uuid: hello.uuid,
+                        protocol: handshake.protocol,
+                        server: handshake.address,
+                        intent: handshake.intent,
                         socket,
-                        connection: connection.login(),
+                        connection,
                     })
                     .await
                     .is_err()
                 {
-                    error!(target: "NET", "Failed to send connection request to main thread");
+                    error!(target: TARGET, "Failed to send connection request to main thread");
                 };
             }
             // Handle the status request.
             ConnectionIntent::Status => {
-                debug!(target: "NET", "{socket} : Status");
+                debug!(target: TARGET, "{socket} : Status");
 
                 let mut connection = connection.status();
                 let mut counter = 0u32;
@@ -152,24 +174,24 @@ impl ConnectionListener {
                 loop {
                     match connection.recv().await {
                         Ok(StatusServerboundPackets::QueryRequest(..)) => {
-                            trace!(target: "NET", "{socket} : Status Request");
+                            trace!(target: TARGET, "{socket} : Status Request");
                             let response = QueryResponsePacket { status: status.read().clone() };
                             if let Err(err) = connection.send(response).await {
-                                error!(target: "NET", "{socket} : {err}");
+                                error!(target: TARGET, "{socket} : {err}");
                             }
                         }
                         Ok(StatusServerboundPackets::QueryPing(query)) => {
-                            trace!(target: "NET", "{socket} : Ping Request");
+                            trace!(target: TARGET, "{socket} : Ping Request");
                             let response = PingResultPacket { pong: query.ping };
                             if let Err(err) = connection.send(response).await {
-                                error!(target: "NET", "{socket} : {err}");
+                                error!(target: TARGET, "{socket} : {err}");
                             }
 
                             // Close the connection after sending the response.
                             return;
                         }
                         Err(err) => {
-                            error!(target: "NET", "{socket} : Failed to receive status packet: {err}");
+                            error!(target: TARGET, "{socket} : Failed to receive status packet: {err}");
                         }
                     }
 

@@ -10,7 +10,7 @@ use froglight::{
 };
 use parking_lot::RwLock;
 
-/// A shared [`ServerStatus`] resource.
+/// A shared [`ServerStatus`] [`Resource`].
 ///
 /// Any status requests will be served with this status.
 #[derive(Debug, Clone, Deref, DerefMut, Resource)]

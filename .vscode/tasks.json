@@ -30,7 +30,7 @@
         {
             "label": "just: run-dev",
             "type": "shell",
-            "command": "RUST_LOG=warn,froglight=debug just run dev",
+            "command": "just run dev",
             "group": {
                 "kind": "build",
                 "isDefault": true
