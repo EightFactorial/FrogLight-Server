@@ -1,0 +1,70 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        // Build Tasks
+        {
+            "label": "just: build-dev",
+            "type": "shell",
+            "command": "just build dev",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "just: build-release",
+            "type": "shell",
+            "command": "just build release",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        // Run Dev
+        {
+            "label": "just: run-dev",
+            "type": "shell",
+            "command": "RUST_LOG=warn,froglight=debug just run dev",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        // Run Release
+        {
+            "label": "just: run-release",
+            "type": "shell",
+            "command": "just run release",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        // Run Tests
+        {
+            "label": "just: all-tests",
+            "type": "shell",
+            "command": "just all-tests",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        // Generate Graphs
+        {
+            "label": "just: graph",
+            "type": "shell",
+            "command": "just graph",
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "editor.formatOnSave": true,
+    "rust-analyzer.checkOnSave": true,
+    "rust-analyzer.cargo.features": "all",
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/.hg/store/**": true,
+    },
+    "workbench.editorAssociations": {
+        "*.svg": "svgPreview.previewEditor"
+    }
+}
