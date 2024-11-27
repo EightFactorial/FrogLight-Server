@@ -32,7 +32,7 @@ impl Plugin for ConnectionFilterPlugin {
         app.init_resource::<ConnectionFilter>();
         app.init_resource::<RateLimitFilter>();
 
-        app.add_event::<AcceptedConnection>();
+        app.add_event::<AcceptedConnectionEvent>();
 
         app.add_systems(PreUpdate, RateLimitFilter::tick_ratelimit);
         app.add_systems(PostUpdate, ConnectionFilterPlugin::filter_requests);
@@ -78,14 +78,14 @@ impl ConnectionFilterPlugin {
 
         // Send `AcceptedConnection` events for each accepted request
         for request in cache.drain(..) {
-            world.send_event(AcceptedConnection { request });
+            world.send_event(AcceptedConnectionEvent { request });
         }
     }
 }
 
 /// An event that is fired when a [`ConnectionRequest`] is accepted.
 #[derive(Event)]
-pub struct AcceptedConnection {
+pub struct AcceptedConnectionEvent {
     /// The connection request that was accepted.
     pub request: ConnectionRequest,
 }

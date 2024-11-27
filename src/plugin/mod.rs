@@ -1,7 +1,7 @@
 //! Plugins used in creating the server.
 
 pub mod filter;
-pub use filter::{AcceptedConnection, ConnectionFilter, ConnectionFilterPlugin};
+pub use filter::{AcceptedConnectionEvent, ConnectionFilter, ConnectionFilterPlugin};
 
 mod group;
 pub use group::{ServerPlugins, TASKPOOL_SETTINGS};

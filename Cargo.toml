@@ -81,5 +81,6 @@ bevy = { workspace = true }
 compact_str = { workspace = true }
 derive_more = { workspace = true }
 froglight = { version = "0.1.0", git = "https://github.com/EightFactorial/FrogLight" }
+futures-lite = { workspace = true }
 parking_lot = { workspace = true }
 simdnbt = { workspace = true }
