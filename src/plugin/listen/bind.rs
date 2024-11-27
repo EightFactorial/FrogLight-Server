@@ -17,6 +17,7 @@ use froglight::{
     },
     prelude::*,
 };
+use parking_lot::Mutex;
 
 use super::ServerStatusArc;
 use crate::plugin::listen::TARGET;
@@ -58,7 +59,7 @@ pub struct ConnectionRequest {
     /// The socket address of the client.
     pub socket: SocketAddr,
     /// The connection to the client.
-    pub connection: Connection<V1_21_0, Login, Clientbound>,
+    pub connection: Mutex<Option<Connection<V1_21_0, Login, Clientbound>>>,
 }
 
 impl ConnectionListener {
@@ -159,7 +160,7 @@ impl ConnectionListener {
                         server: handshake.address,
                         intent: handshake.intent,
                         socket,
-                        connection,
+                        connection: Mutex::new(Some(connection)),
                     })
                     .await
                     .is_err()
@@ -179,15 +180,19 @@ impl ConnectionListener {
                         Ok(StatusServerboundPackets::QueryRequest(..)) => {
                             trace!(target: TARGET, "{socket} : Status Request");
                             let response = QueryResponsePacket { status: status.read().clone() };
+
                             if let Err(err) = connection.send(response).await {
                                 error!(target: TARGET, "{socket} : {err}");
+                                return;
                             }
                         }
                         Ok(StatusServerboundPackets::QueryPing(query)) => {
                             trace!(target: TARGET, "{socket} : Ping Request");
                             let response = PingResultPacket { pong: query.ping };
+
                             if let Err(err) = connection.send(response).await {
                                 error!(target: TARGET, "{socket} : {err}");
+                                return;
                             }
 
                             // Close the connection after sending the response.
@@ -195,12 +200,14 @@ impl ConnectionListener {
                         }
                         Err(err) => {
                             error!(target: TARGET, "{socket} : Failed to receive status packet: {err}");
+                            return;
                         }
                     }
 
                     // Limit the number of packets to prevent spam.
                     counter += 1;
                     if counter >= 3 {
+                        warn!(target: TARGET, "{socket} : Closing, too many requests");
                         return;
                     }
                 }

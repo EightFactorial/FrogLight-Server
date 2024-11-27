@@ -4,7 +4,7 @@ use bevy::{prelude::*, utils::HashMap};
 use parking_lot::Mutex;
 
 use super::FilterResult;
-use crate::plugin::{connection::TARGET, listen::ConnectionRequest};
+use crate::plugin::{filter::TARGET, listen::ConnectionRequest};
 
 /// A filter that rate-limits connections based on their IP address.
 #[derive(Debug, Resource)]

@@ -13,7 +13,7 @@ pub use plugin::ListenerPlugin;
 mod status;
 pub use status::ServerStatusArc;
 
-/// The log target for this module.
+/// The target for this module.
 static TARGET: &str = "NET";
 
 impl ListenerPlugin {

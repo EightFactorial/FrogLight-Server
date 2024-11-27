@@ -1,14 +1,15 @@
 use std::net::IpAddr;
 
 use bevy::{
+    log::debug,
     prelude::{Resource, World},
     utils::{hashbrown::Equivalent, HashSet},
 };
 use compact_str::CompactString;
 use derive_more::derive::From;
-use froglight::prelude::Uuid;
+use froglight::{network::connection::AccountInformation, prelude::Uuid};
 
-use super::FilterResult;
+use super::{FilterResult, TARGET};
 use crate::plugin::listen::ConnectionRequest;
 
 /// A set of UUIDs, usernames, and addresses to filter connections by.
@@ -81,8 +82,18 @@ impl ConnectionFilter {
             let address = request.socket.ip();
             let filter_address = FilterRef::Address(&address);
 
+            let offline_uuid = AccountInformation::offline_uuid(&request.username);
+            let filter_offline_uuid = FilterRef::Uuid(&offline_uuid);
+
+            // Log if the offline UUID does not match the request UUID.
+            // This is a common occurrence when the client is in offline mode.
+            if offline_uuid != request.uuid {
+                debug!(target: TARGET, "UUID mismatch: {offline_uuid} != {}", request.uuid);
+            }
+
             // Check if the request matches any filters
             let contains = filters.contains(&filter_uuid)
+                || filters.contains(&filter_offline_uuid)
                 || filters.contains(&filter_username)
                 || filters.contains(&filter_address);
 

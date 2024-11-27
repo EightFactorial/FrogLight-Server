@@ -10,7 +10,7 @@ use froglight::{
     HeadlessPlugins,
 };
 
-use crate::plugin::{ConnectionPlugin, ListenerPlugin};
+use crate::plugin::{ConnectionFilterPlugin, ListenerPlugin, LoginPlugin};
 
 /// A [`PluginGroup`] for creating a server.
 ///
@@ -34,7 +34,8 @@ use crate::plugin::{ConnectionPlugin, ListenerPlugin};
 ///
 /// FrogLight-Server plugins:
 /// - [`ListenerPlugin`]
-/// - [`ConnectionPlugin`]
+/// - [`ConnectionFilterPlugin`]
+/// - [`LoginPlugin`]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ServerPlugins {
     /// The address the server will bind to.
@@ -47,7 +48,7 @@ impl ServerPlugins {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 25565);
 
     #[cfg(debug_assertions)]
-    const LOG_FILTER: &'static str = "info,NET=debug";
+    const LOG_FILTER: &'static str = "info,CON=debug,NET=debug";
 
     #[cfg(not(debug_assertions))]
     const LOG_FILTER: &'static str = "info";
@@ -68,10 +69,11 @@ impl PluginGroup for ServerPlugins {
         // Overwrite the default TaskPoolPlugin settings.
         builder = builder.set(TaskPoolPlugin { task_pool_options: super::TASKPOOL_SETTINGS });
 
-        // Disable the network and resolver plugins.
+        // Disable the NetworkPlugin and ResolverPlugin.
         builder = builder.disable::<FroglightNetworkPlugin>().disable::<FroglightResolverPlugin>();
-        // Add the ListenerPlugin and ConnectionPlugin.
-        builder = builder.add(ListenerPlugin { socket: self.socket }).add(ConnectionPlugin);
+        // Add the ListenerPlugin, ConnectionFilterPlugin, and LoginPlugin.
+        builder = builder.add(ListenerPlugin { socket: self.socket });
+        builder = builder.add(ConnectionFilterPlugin).add(LoginPlugin);
 
         builder
     }
