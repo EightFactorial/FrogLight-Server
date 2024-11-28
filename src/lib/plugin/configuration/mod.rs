@@ -41,8 +41,11 @@ static TARGET: &str = "CONFG";
 
 impl ConfigPlugin {
     /// Add systems, resources, and events for the given [`Version`].
-    fn add_version<V: Version + ConnectionConfig + SendServerBrand>(app: &mut App)
-    where
+    fn add_version<
+        V: Version + ConnectionConfig + SendServerBrand + KnownPacksConfig + FinishConfig,
+    >(
+        app: &mut App,
+    ) where
         Clientbound: NetworkDirection<V, Login>
             + NetworkDirection<V, Configuration>
             + NetworkDirection<V, Play>,
@@ -54,6 +57,7 @@ impl ConfigPlugin {
         app.add_event::<ConfigPacketEvent<V>>();
 
         app.init_resource::<ConfigChecklist<V>>();
+        app.init_resource::<KnownPacks<V>>();
 
         app.add_systems(
             PreUpdate,
@@ -62,7 +66,13 @@ impl ConfigPlugin {
 
         app.add_systems(
             Update,
-            (ServerBrand::send_server_brand::<V>, ServerBrand::recv_client_brand::<V>)
+            (
+                ServerBrand::send_server_brand::<V>,
+                ServerBrand::recv_client_brand::<V>,
+                KnownPacks::<V>::send_known_packs,
+                KnownPacks::<V>::recv_known_packs,
+                ConfigFinish::finish_configuration::<V>,
+            )
                 .run_if(any_with_component::<ConfigTask<V>>),
         );
 
@@ -112,9 +122,8 @@ impl ConfigPlugin {
     /// Poll [`ConfigTask`]s for completion.
     ///
     /// Sends a [`ConnectionConfigEvent`] when a task completes.
-    #[expect(clippy::missing_panics_doc)]
-    #[expect(clippy::type_complexity)]
-    pub fn poll_configs<V: Version>(
+    #[expect(clippy::missing_panics_doc, clippy::type_complexity, private_bounds)]
+    pub fn poll_configs<V: Version + KnownPacksConfig>(
         world: &mut World,
         mut cache: Local<Vec<(Entity, Connection<V, Play, Clientbound>)>>,
     ) where
@@ -150,14 +159,14 @@ impl ConfigPlugin {
             let profile = world.get::<GameProfile>(entity).expect("Missing GameProfile");
             match world.resource::<ConfigChecklist<V>>().check(entity, world) {
                 ConfigAction::Accept => {
-                    info!(target: TARGET, "Accepted confuration from {}", profile.name);
+                    info!(target: TARGET, "Accepted configuration from {}", profile.name);
 
                     let connection = Mutex::new(Some(connection));
                     world.send_event(ConnectionConfigEvent { entity, connection });
                 }
                 ConfigAction::Deny(reason) => {
                     let reason = reason.unwrap_or(Self::DEFAULT_REASON.to_string());
-                    warn!(target: TARGET, "Denied confuration from {}: {reason}", profile.name);
+                    warn!(target: TARGET, "Denied configuration from {}: {reason}", profile.name);
 
                     debug!(target: TARGET, "Despawning {}'s Entity {}", profile.name, entity);
                     world.commands().entity(entity).despawn_recursive();

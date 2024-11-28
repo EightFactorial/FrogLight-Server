@@ -1,9 +1,12 @@
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
-use froglight::prelude::Version;
+use froglight::{
+    network::connection::NetworkDirection,
+    prelude::{State, *},
+};
 
-use super::ServerBrand;
+use super::{KnownPacks, KnownPacksConfig, ServerBrand};
 
 type ChecklistFn = dyn Fn(Entity, &World) -> ConfigAction + Send + Sync;
 type BoxedCheck = Box<ChecklistFn>;
@@ -15,11 +18,22 @@ pub struct ConfigChecklist<V: Version> {
     _phantom: PhantomData<V>,
 }
 
-impl<V: Version> Default for ConfigChecklist<V> {
+impl<V: Version + KnownPacksConfig> Default for ConfigChecklist<V>
+where
+    Clientbound: NetworkDirection<V, Configuration> + NetworkDirection<V, Play>,
+    Configuration: State<V>,
+    Play: State<V>,
+{
     fn default() -> Self { Self::new() }
 }
 
-impl<V: Version> ConfigChecklist<V> {
+#[expect(private_bounds)]
+impl<V: Version + KnownPacksConfig> ConfigChecklist<V>
+where
+    Clientbound: NetworkDirection<V, Configuration> + NetworkDirection<V, Play>,
+    Configuration: State<V>,
+    Play: State<V>,
+{
     /// Create a new empty [`ConfigChecklist`].
     #[must_use]
     pub const fn new_empty() -> Self { Self { checklist: Vec::new(), _phantom: PhantomData } }
@@ -29,6 +43,7 @@ impl<V: Version> ConfigChecklist<V> {
     pub fn new() -> Self {
         let mut checklist = Self::new_empty();
         checklist.add(ServerBrand::has_sent_brand);
+        checklist.add(KnownPacks::<V>::has_known_packs);
         checklist
     }
 
