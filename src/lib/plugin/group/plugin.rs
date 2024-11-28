@@ -6,11 +6,14 @@ use bevy::{
     log::LogPlugin,
 };
 use froglight::{
-    network::{NetworkPlugin as FroglightNetworkPlugin, ResolverPlugin as FroglightResolverPlugin},
+    network::{
+        versions::v1_21_0::V1_21_0, NetworkPlugin as FroglightNetworkPlugin,
+        ResolverPlugin as FroglightResolverPlugin,
+    },
     HeadlessPlugins,
 };
 
-use crate::plugin::{ConfigPlugin, ConnectionFilterPlugin, ListenerPlugin, LoginPlugin};
+use crate::network::{NetworkPlugins, SocketPlugin};
 
 /// A [`PluginGroup`] for creating a server.
 ///
@@ -33,9 +36,7 @@ use crate::plugin::{ConfigPlugin, ConnectionFilterPlugin, ListenerPlugin, LoginP
 /// - [`UtilityPlugin`](froglight::prelude::plugins::UtilityPlugin)
 ///
 /// FrogLight-Server plugins:
-/// - [`ListenerPlugin`]
-/// - [`ConnectionFilterPlugin`]
-/// - [`LoginPlugin`]
+/// - [`NetworkPlugins`]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ServerPlugins {
     /// The address the server will bind to.
@@ -44,13 +45,13 @@ pub struct ServerPlugins {
 
 impl ServerPlugins {
     #[cfg(debug_assertions)]
-    const LOG_FILTER: &'static str = "info,CONFG=debug,FILTR=debug,NETWK=debug";
+    const LOG_FILTER: &'static str = "info,SOCK=debug";
 
     #[cfg(not(debug_assertions))]
     const LOG_FILTER: &'static str = "info";
 }
 impl Default for ServerPlugins {
-    fn default() -> Self { Self { socket: ListenerPlugin::LOCALHOST } }
+    fn default() -> Self { Self { socket: SocketPlugin::<V1_21_0>::LOCALHOST } }
 }
 
 impl PluginGroup for ServerPlugins {
@@ -65,12 +66,11 @@ impl PluginGroup for ServerPlugins {
         // Overwrite the default TaskPoolPlugin settings.
         builder = builder.set(TaskPoolPlugin { task_pool_options: super::TASKPOOL_SETTINGS });
 
-        // Disable the NetworkPlugin and ResolverPlugin.
+        // Disable the FroglightNetworkPlugin and FroglightResolverPlugin.
         builder = builder.disable::<FroglightNetworkPlugin>().disable::<FroglightResolverPlugin>();
-        // Add the ListenerPlugin, ConnectionFilterPlugin,
-        // LoginPlugin, and ConfigPlugin.
-        builder = builder.add(ListenerPlugin { socket: self.socket });
-        builder = builder.add(ConnectionFilterPlugin).add(LoginPlugin).add(ConfigPlugin);
+
+        // Add the generic NetworkPlugins groups.
+        builder = builder.add_group(NetworkPlugins::<V1_21_0>::from_socket(self.socket));
 
         builder
     }
