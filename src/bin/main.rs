@@ -1,8 +1,6 @@
 //! TODO
 
 use bevy::prelude::*;
-
-pub mod plugin;
-use plugin::ServerPlugins;
+use froglight_server::ServerPlugins;
 
 fn main() -> AppExit { App::new().add_plugins(ServerPlugins::default()).run() }

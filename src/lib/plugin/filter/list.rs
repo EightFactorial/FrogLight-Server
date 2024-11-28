@@ -24,8 +24,8 @@ impl ConnectionFilterList {
     #[must_use]
     pub fn new() -> Self {
         let mut filter = Self::new_empty();
-        filter.add_filter(ConnectionFilter::filter);
         filter.add_filter(RateLimitFilter::filter);
+        filter.add_filter(ConnectionFilter::filter);
         filter
     }
 

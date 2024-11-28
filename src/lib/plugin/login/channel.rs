@@ -33,8 +33,8 @@ where
     Login: State<V>,
 {
     /// Send a packet to the channel.
-    pub fn send(&self, packet: <Login as State<V>>::ClientboundPacket) {
-        let _ = self.try_send(Arc::new(packet));
+    pub fn send(&self, packet: impl Into<<Login as State<V>>::ClientboundPacket>) {
+        let _ = self.try_send(Arc::new(packet.into()));
     }
     /// Send a packet to the channel.
     ///

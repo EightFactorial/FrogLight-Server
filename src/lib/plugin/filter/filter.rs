@@ -85,10 +85,12 @@ impl ConnectionFilter {
             let offline_uuid = AccountInformation::offline_uuid(&request.username);
             let filter_offline_uuid = FilterRef::Uuid(&offline_uuid);
 
-            // Log if the offline UUID does not match the request UUID.
-            // This is a common occurrence when the client is in offline mode.
+            // Log when forcing the connection to use a different UUID
+            //
+            // This most often happens when the server is in offline mode
+            // and the client is in online mode.
             if offline_uuid != request.uuid {
-                debug!(target: TARGET, "UUID mismatch: {offline_uuid} != {}", request.uuid);
+                debug!(target: TARGET, "Forcing UUID: {} -> {offline_uuid}", request.uuid);
             }
 
             // Check if the request matches any filters

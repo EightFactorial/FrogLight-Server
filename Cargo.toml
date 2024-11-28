@@ -74,6 +74,14 @@ rustdoc-args = ["--cfg", "docsrs"]
 [lints]
 workspace = true
 
+[[bin]]
+name = "froglight-server"
+path = "src/bin/main.rs"
+
+[lib]
+name = "froglight_server"
+path = "src/lib/lib.rs"
+
 [dependencies]
 async-channel = { workspace = true }
 async-std = { workspace = true }
