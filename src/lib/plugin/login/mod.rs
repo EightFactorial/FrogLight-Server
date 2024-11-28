@@ -38,6 +38,8 @@ pub struct LoginPlugin;
 
 impl Plugin for LoginPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<LoginCompressionAction>();
+
         app.add_systems(
             PostUpdate,
             Self::spawn_logins
@@ -50,7 +52,7 @@ impl Plugin for LoginPlugin {
 }
 
 /// The target for this module.
-static TARGET: &str = "CON";
+static TARGET: &str = "LOGIN";
 
 impl LoginPlugin {
     /// Add systems, resources, and events for the given [`Version`].
@@ -64,7 +66,6 @@ impl LoginPlugin {
         app.add_event::<LoginPacketEvent<V>>();
 
         app.init_resource::<LoginChecklist<V>>();
-        app.init_resource::<LoginCompressionAction>();
 
         app.add_systems(
             Update,
@@ -94,9 +95,10 @@ impl LoginPlugin {
         } in events.read()
         {
             let Some(connection) = std::mem::take(&mut *connection.lock()) else {
-                warn!(target: TARGET, "Connection was stolen before login");
+                error!(target: TARGET, "Connection was stolen before login");
                 continue;
             };
+            info!(target: TARGET, "Starting login for {}", username);
 
             // Create a `ConnectionInformation`
             let information =
@@ -157,8 +159,6 @@ impl LoginPlugin {
             let profile = world.get::<GameProfile>(entity).expect("Missing GameProfile");
             match world.resource::<LoginChecklist<V>>().check(entity, world) {
                 LoginAction::Accept => {
-                    info!(target: TARGET, "Accepted login from {}", profile.name);
-
                     let connection = Mutex::new(Some(connection));
                     world.send_event(ConnectionLoginEvent { entity, connection });
                 }

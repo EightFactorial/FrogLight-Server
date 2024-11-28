@@ -20,7 +20,7 @@ pub use ratelimit::RateLimitFilter;
 use super::listen::{ConnectionListener, ConnectionRequest};
 
 /// The target for this module.
-static TARGET: &str = "CON";
+static TARGET: &str = "FILTR";
 
 /// A plugin that manages connections to the server.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]

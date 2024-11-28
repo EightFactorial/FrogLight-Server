@@ -1,2 +1,3 @@
 mod brand;
-pub use brand::ServerBrand;
+pub(super) use brand::SendServerBrand;
+pub use brand::{ClientBrand, ServerBrand};

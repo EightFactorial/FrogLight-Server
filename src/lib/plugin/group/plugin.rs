@@ -1,4 +1,4 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::SocketAddr;
 
 use bevy::{
     app::{PluginGroup, PluginGroupBuilder},
@@ -10,7 +10,7 @@ use froglight::{
     HeadlessPlugins,
 };
 
-use crate::plugin::{ConnectionFilterPlugin, ListenerPlugin, LoginPlugin};
+use crate::plugin::{ConfigPlugin, ConnectionFilterPlugin, ListenerPlugin, LoginPlugin};
 
 /// A [`PluginGroup`] for creating a server.
 ///
@@ -43,18 +43,14 @@ pub struct ServerPlugins {
 }
 
 impl ServerPlugins {
-    /// The default socket address for the server.
-    pub const LOCALHOST: SocketAddr =
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 25565);
-
     #[cfg(debug_assertions)]
-    const LOG_FILTER: &'static str = "info,CON=debug,NET=debug";
+    const LOG_FILTER: &'static str = "info,CONFG=debug,FILTR=debug,NETWK=debug";
 
     #[cfg(not(debug_assertions))]
     const LOG_FILTER: &'static str = "info";
 }
 impl Default for ServerPlugins {
-    fn default() -> Self { Self { socket: Self::LOCALHOST } }
+    fn default() -> Self { Self { socket: ListenerPlugin::LOCALHOST } }
 }
 
 impl PluginGroup for ServerPlugins {
@@ -71,9 +67,10 @@ impl PluginGroup for ServerPlugins {
 
         // Disable the NetworkPlugin and ResolverPlugin.
         builder = builder.disable::<FroglightNetworkPlugin>().disable::<FroglightResolverPlugin>();
-        // Add the ListenerPlugin, ConnectionFilterPlugin, and LoginPlugin.
+        // Add the ListenerPlugin, ConnectionFilterPlugin,
+        // LoginPlugin, and ConfigPlugin.
         builder = builder.add(ListenerPlugin { socket: self.socket });
-        builder = builder.add(ConnectionFilterPlugin).add(LoginPlugin);
+        builder = builder.add(ConnectionFilterPlugin).add(LoginPlugin).add(ConfigPlugin);
 
         builder
     }
