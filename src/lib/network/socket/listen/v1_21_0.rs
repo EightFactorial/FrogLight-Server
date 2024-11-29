@@ -13,7 +13,7 @@ use froglight::{
     },
     prelude::*,
 };
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 
 use super::ListenerTrait;
 use crate::network::{socket::TARGET, ConnectionRequest};
@@ -92,7 +92,7 @@ async fn handle(
                     server: handshake.address,
                     intent: handshake.intent,
                     socket: sock,
-                    connection: conn,
+                    connection: Mutex::new(Some(conn)),
                 })
                 .await
             {

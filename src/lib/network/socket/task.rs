@@ -11,7 +11,7 @@ use froglight::{
     network::connection::NetworkDirection,
     prelude::{State, *},
 };
-use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use parking_lot::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use super::{ConnectionRequestEvent, SocketFilter};
 use crate::network::{socket::TARGET, FilterResult};
@@ -64,10 +64,7 @@ where
 {
     const DEFAULT_REASON: &'static str = "Denied by server";
 
-    pub(super) fn poll_listeners(
-        world: &mut World,
-        mut cache: Local<Vec<ConnectionRequestEvent<V>>>,
-    ) {
+    pub(super) fn poll_tasks(world: &mut World, mut cache: Local<Vec<ConnectionRequestEvent<V>>>) {
         let mut state =
             SystemState::<(Query<(Entity, &mut ConnectionListener<V>)>, Commands)>::new(world);
         let (mut query, mut commands) = state.get_mut(world);
@@ -119,5 +116,17 @@ where
     /// The socket address of the client.
     pub socket: SocketAddr,
     /// The connection to the client.
-    pub connection: Connection<V, Login, Clientbound>,
+    pub connection: Mutex<Option<Connection<V, Login, Clientbound>>>,
+}
+
+impl<V: Version> ConnectionRequest<V>
+where
+    Clientbound: NetworkDirection<V, Login>,
+    Login: State<V>,
+{
+    /// Take the [`Connection`] from the request.
+    #[must_use]
+    pub fn take(&self) -> Option<Connection<V, Login, Clientbound>> {
+        self.connection.lock().take()
+    }
 }

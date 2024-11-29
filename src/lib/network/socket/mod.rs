@@ -79,7 +79,7 @@ where
 
         app.add_systems(
             PostUpdate,
-            ConnectionListener::<V>::poll_listeners
+            ConnectionListener::<V>::poll_tasks
                 .run_if(any_with_component::<ConnectionListener<V>>)
                 .in_set(ListenSystemSet),
         );
@@ -101,7 +101,7 @@ where
             return;
         }
 
-        match <V as ListenerTrait>::new(**self) {
+        match <V as ListenerTrait>::new_listener(**self) {
             Ok(listener) => {
                 let entity = app.world_mut().spawn(listener);
                 debug!(target: TARGET, "Spawned {:?} listener on Entity {}", V::default(), entity.id());

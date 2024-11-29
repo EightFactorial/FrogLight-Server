@@ -36,15 +36,15 @@ where
     /// # Errors
     /// Returns an error if the listener cannot bind to the socket.
     #[inline]
-    fn new(socket: SocketAddr) -> Result<ConnectionListener<Self>, std::io::Error> {
-        Self::new_from(socket, Arc::new(RwLock::new(Self::default_status())))
+    fn new_listener(socket: SocketAddr) -> Result<ConnectionListener<Self>, std::io::Error> {
+        Self::new_listener_from(socket, Arc::new(RwLock::new(Self::default_status())))
     }
 
     /// Create a new [`ConnectionListener`] that listens on the given socket.
     ///
     /// # Errors
     /// Returns an error if the listener cannot bind to the socket.
-    fn new_from(
+    fn new_listener_from(
         socket: SocketAddr,
         status: Arc<RwLock<ServerStatus>>,
     ) -> Result<ConnectionListener<Self>, std::io::Error> {

@@ -42,6 +42,7 @@ impl<V: Version> NetworkPlugins<V> {
 impl<V: Version> PluginGroup for NetworkPlugins<V>
 where
     SocketPlugin<V>: Plugin,
+    LoginPlugin<V>: Plugin,
 {
     fn build(self) -> PluginGroupBuilder {
         let builder = PluginGroupBuilder::start::<Self>();
