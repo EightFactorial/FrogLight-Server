@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
+mod list;
+pub use list::DimensionList;
+
 mod reflect;
 pub use reflect::{DimensionTrait, ReflectDimension};
-
-mod storage;
-pub use storage::{DimensionMap, DimensionStorage};
 
 mod types;
 pub use types::Overworld;
@@ -14,9 +14,7 @@ pub use types::Overworld;
 pub struct DimensionPlugin;
 
 impl Plugin for DimensionPlugin {
-    fn build(&self, app: &mut App) {
-        app.register_type::<Overworld>();
+    fn build(&self, app: &mut App) { app.register_type::<Overworld>(); }
 
-        app.init_resource::<DimensionStorage>();
-    }
+    fn finish(&self, app: &mut App) { app.init_resource::<DimensionList>(); }
 }

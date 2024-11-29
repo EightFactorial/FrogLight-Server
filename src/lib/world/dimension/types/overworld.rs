@@ -2,6 +2,7 @@ use std::ops::RangeInclusive;
 
 use bevy::reflect::Reflect;
 use compact_str::CompactString;
+use froglight::prelude::ResourceKey;
 
 use crate::{world::dimension::reflect::MonsterSpawnLightLevel, DimensionTrait, ReflectDimension};
 
@@ -11,6 +12,7 @@ use crate::{world::dimension::reflect::MonsterSpawnLightLevel, DimensionTrait, R
 pub struct Overworld;
 
 impl DimensionTrait for Overworld {
+    const DIMENSION_KEY: ResourceKey = ResourceKey::const_new("minecraft:overworld");
     const AMBIENT_LIGHT: f32 = 0.0;
     const BED_WORKS: bool = true;
     const COORDINATE_SCALE: f64 = 1.0;

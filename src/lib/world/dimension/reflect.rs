@@ -2,11 +2,15 @@ use std::ops::RangeInclusive;
 
 use bevy::{prelude::*, reflect::FromType};
 use compact_str::CompactString;
+use froglight::prelude::ResourceKey;
 
 /// Reflection data for a dimension.
 #[derive(Debug, Clone, PartialEq)]
 #[expect(clippy::struct_excessive_bools)]
 pub struct ReflectDimension {
+    /// The key for the dimension.
+    pub dimension_key: ResourceKey,
+
     /// An optional fixed time for the dimension.
     pub fixed_time: Option<f64>,
     /// Whether the dimension has skylight.
@@ -46,6 +50,7 @@ pub struct ReflectDimension {
 impl<D: DimensionTrait> FromType<D> for ReflectDimension {
     fn from_type() -> Self {
         ReflectDimension {
+            dimension_key: D::DIMENSION_KEY,
             fixed_time: D::FIXED_TIME,
             has_skylight: D::HAS_SKYLIGHT,
             has_ceiling: D::HAS_CEILING,
@@ -75,6 +80,9 @@ where
 
 /// A trait for dimensions.
 pub trait DimensionTrait: 'static {
+    /// The key for the dimension.
+    const DIMENSION_KEY: ResourceKey;
+
     /// An optional fixed time for the dimension.
     const FIXED_TIME: Option<f64>;
     /// Whether the dimension has skylight.
