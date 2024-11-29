@@ -39,6 +39,7 @@ where
 
 /// A [`Component`] that marks a [`GameProfile`] as already sent.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[component(storage = "SparseSet")]
 pub struct WasSentProfile;
 
 impl<V: Version + LoginProfileTrait> LoginProfilePlugin<V>

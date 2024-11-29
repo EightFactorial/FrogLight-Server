@@ -37,6 +37,7 @@ where
 
 /// A [`Component`] that marks registry packets as already sent.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[component(storage = "SparseSet")]
 pub struct WasSentRegistries;
 
 impl<V: Version + ConfigRegistryTrait> ConfigRegistryPlugin<V>

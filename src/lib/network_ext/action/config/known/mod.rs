@@ -38,6 +38,7 @@ where
 
 /// A [`Component`] that marks a [`Configuration`] as already sent.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[component(storage = "SparseSet")]
 pub struct WasSentPacks;
 
 /// A [`Component`] that holds the client's known resourcepacks.
