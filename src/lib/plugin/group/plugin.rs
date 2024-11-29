@@ -48,7 +48,7 @@ pub struct ServerPlugins {
 
 impl ServerPlugins {
     #[cfg(debug_assertions)]
-    const LOG_FILTER: &'static str = "info,LOGN=debug,NEXT=debug,SOCK=debug";
+    const LOG_FILTER: &'static str = "info,CONF=debug,LOGN=debug,NEXT=debug,PLAY+debug,SOCK=debug";
 
     #[cfg(not(debug_assertions))]
     const LOG_FILTER: &'static str = "info";

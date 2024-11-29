@@ -6,7 +6,7 @@ use froglight::{
 };
 
 use super::{ConnectionInfo, LoginFilter, LoginPacketEvent, LoginTask, LoginTrait};
-use crate::network::{login::TARGET, ConnectionRequestEvent, FilterResult};
+use crate::network::{login::TARGET, ConnectionRequestEvent, FilterResult, LoginStateEvent};
 
 impl<V: Version> LoginTask<V>
 where
@@ -95,11 +95,12 @@ where
 
         state.apply(world);
 
-        for (entity, _conn) in cache.drain(..) {
+        for (entity, conn) in cache.drain(..) {
             match world.resource::<LoginFilter<V>>().filter(entity, world) {
                 FilterResult::Allow => {
                     let profile = world.get::<GameProfile>(entity).unwrap();
                     info!(target: TARGET, "Successfully logged in {}", profile.name);
+                    world.send_event(LoginStateEvent::<V>::new(entity, conn));
                 }
                 FilterResult::Deny(reason) => {
                     let reason = reason.unwrap_or(Self::DEFAULT_REASON.to_compact_string());

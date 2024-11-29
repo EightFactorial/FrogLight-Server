@@ -44,11 +44,15 @@ where
         self.receiver.try_recv()
     }
 
-    /// A shared reference to the [`ServerStatus`].
+    /// Shared read access to the [`ServerStatus`].
     pub fn status(&self) -> RwLockReadGuard<ServerStatus> { self.status.read() }
 
-    /// A mutable reference to the [`ServerStatus`].
-    pub fn status_mut(&self) -> RwLockWriteGuard<ServerStatus> { self.status.write() }
+    /// Exclusive write access to the [`ServerStatus`].
+    ///
+    /// # Note
+    /// While this is held,
+    /// connections will be unable to request the server status.
+    pub fn status_mut(&mut self) -> RwLockWriteGuard<ServerStatus> { self.status.write() }
 
     /// Poll the [`ConnectionListener`] task.
     ///
