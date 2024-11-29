@@ -75,7 +75,10 @@ where
 
         for (entity, profile, mut listener) in &mut query {
             match listener.poll() {
-                Some(Ok(conn)) => cache.push((entity, conn)),
+                Some(Ok(conn)) => {
+                    cache.push((entity, conn));
+                    commands.entity(entity).remove::<LoginTask<V>>();
+                }
                 Some(Err(err)) => {
                     if let Some(profile) = profile {
                         error!(target: TARGET, "Failed to login {}: {err}", profile.name);
@@ -101,9 +104,9 @@ where
                 FilterResult::Deny(reason) => {
                     let reason = reason.unwrap_or(Self::DEFAULT_REASON.to_compact_string());
                     if let Some(profile) = world.get::<GameProfile>(entity) {
-                        error!(target: TARGET, "Failed to login {}: {reason}", profile.name);
+                        error!(target: TARGET, "Refused to login {}: {reason}", profile.name);
                     } else {
-                        error!(target: TARGET, "Failed to login {entity}: {reason}");
+                        error!(target: TARGET, "Refused to login {entity}: {reason}");
                     }
 
                     debug!(target: TARGET, "Despawning Entity {entity}");

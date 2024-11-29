@@ -13,7 +13,10 @@ use froglight::{
     HeadlessPlugins,
 };
 
-use crate::network::{NetworkPlugins, SocketPlugin};
+use crate::{
+    network::{NetworkPlugins, SocketPlugin},
+    network_ext::NetworkExtPlugins,
+};
 
 /// A [`PluginGroup`] for creating a server.
 ///
@@ -45,7 +48,7 @@ pub struct ServerPlugins {
 
 impl ServerPlugins {
     #[cfg(debug_assertions)]
-    const LOG_FILTER: &'static str = "info,LOGN=debug,SOCK=debug";
+    const LOG_FILTER: &'static str = "info,LOGN=debug,NEXT=debug,SOCK=debug";
 
     #[cfg(not(debug_assertions))]
     const LOG_FILTER: &'static str = "info";
@@ -69,8 +72,10 @@ impl PluginGroup for ServerPlugins {
         // Disable the FroglightNetworkPlugin and FroglightResolverPlugin.
         builder = builder.disable::<FroglightNetworkPlugin>().disable::<FroglightResolverPlugin>();
 
-        // Add the generic NetworkPlugins groups.
-        builder = builder.add_group(NetworkPlugins::<V1_21_0>::from_socket(self.socket));
+        // Add the v1.21.0 NetworkPlugins and NetworkExtPlugins.
+        builder = builder
+            .add_group(NetworkPlugins::<V1_21_0>::from_socket(self.socket))
+            .add_group(NetworkExtPlugins::<V1_21_0>::default());
 
         builder
     }

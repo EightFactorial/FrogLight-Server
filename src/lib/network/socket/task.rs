@@ -92,7 +92,7 @@ where
                 }
                 FilterResult::Deny(reason) => {
                     let reason = reason.unwrap_or(Self::DEFAULT_REASON.to_compact_string());
-                    warn!(target: TARGET, "Denied connection from {}: {reason}", event.request.socket);
+                    warn!(target: TARGET, "Refused connection from {}: {reason}", event.request.socket);
                 }
             }
         }

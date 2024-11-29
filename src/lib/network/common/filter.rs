@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use compact_str::CompactString;
 use froglight::prelude::{State, *};
 
-type FilterFn = dyn Fn(Entity, i32, &World) -> FilterResult + Send + Sync;
+type FilterFn = dyn Fn(Entity, &World) -> FilterResult + Send + Sync;
 
 /// A filter that can be applied to a connection.
 #[derive(Default, Resource)]
@@ -32,7 +32,7 @@ impl<V: Version, S: State<V>> ConnectionFilter<V, S> {
     #[inline]
     pub fn add_filter(
         &mut self,
-        filter: impl Fn(Entity, i32, &World) -> FilterResult + Send + Sync + 'static,
+        filter: impl Fn(Entity, &World) -> FilterResult + Send + Sync + 'static,
     ) {
         self.filters.push(Box::new(filter));
     }
@@ -46,7 +46,7 @@ impl<V: Version, S: State<V>> ConnectionFilter<V, S> {
     pub fn filter(&self, entity: Entity, world: &World) -> FilterResult {
         self.filters
             .iter()
-            .map(|filter| filter(entity, V::ID, world))
+            .map(|filter| filter(entity, world))
             .find(|result| result != &FilterResult::Allow)
             .unwrap_or(FilterResult::Allow)
     }
