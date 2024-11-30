@@ -6,7 +6,7 @@ use froglight::{
     prelude::{State, *},
 };
 
-use super::{ClientKnownPacks, WasSentRegistries};
+use super::{ClientConfiguration, ClientKnownPacks, WasSentRegistries};
 use crate::{
     network::{ConfigFilter, ConfigTask, FilterResult},
     network_ext::{NetworkExtSystemSet, TARGET},
@@ -53,7 +53,12 @@ where
     pub fn send_finish(
         query: Query<
             (Entity, &GameProfile, &ConfigTask<V>),
-            (With<ClientKnownPacks>, With<WasSentRegistries>, Without<WasSentFinish>),
+            (
+                With<ClientConfiguration>,
+                With<ClientKnownPacks>,
+                With<WasSentRegistries>,
+                Without<WasSentFinish>,
+            ),
         >,
         mut commands: Commands,
     ) {
@@ -70,7 +75,7 @@ where
         mut commands: Commands,
     ) {
         for (entity, profile) in &query {
-            debug!(target: TARGET, "Removing finish from {}", profile.name);
+            debug!(target: TARGET, "Removing finish flag from {}", profile.name);
             commands.entity(entity).remove::<WasSentFinish>();
         }
     }

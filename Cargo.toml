@@ -39,10 +39,8 @@ unnecessary_cast = "warn"
 
 [workspace.dependencies]
 async-channel = "2.3.1"
-async-std = "1.13.0"
-bevy = { version = "0.15.0", default-features = false, features = [
-    "bevy_state",
-] }
+async-std = { version = "1.13.0", default-features = false }
+bevy = { version = "0.15.0", default-features = false }
 bitvec = "1.0.1"
 bytemuck = { version = "1.20.0", features = ["latest_stable_rust"] }
 compact_str = "0.8.0"
@@ -84,7 +82,7 @@ path = "src/lib/lib.rs"
 
 [dependencies]
 async-channel = { workspace = true }
-async-std = { workspace = true }
+async-std = { workspace = true, default-features = false }
 bevy = { workspace = true }
 compact_str = { workspace = true }
 derive_more = { workspace = true }

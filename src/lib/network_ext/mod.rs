@@ -6,7 +6,10 @@ use bevy::{app::PluginGroupBuilder, prelude::*};
 use froglight::prelude::Version;
 
 pub mod action;
-use action::{ConfigFinishPlugin, ConfigKnownPackPlugin, ConfigRegistryPlugin, LoginProfilePlugin};
+use action::{
+    ConfigFinishPlugin, ConfigKnownPackPlugin, ConfigOptionsPlugin, ConfigRegistryPlugin,
+    LoginProfilePlugin,
+};
 
 pub mod filter;
 
@@ -27,6 +30,7 @@ pub struct NetworkExtPlugins<V: Version>(PhantomData<V>);
 impl<V: Version> PluginGroup for NetworkExtPlugins<V>
 where
     LoginProfilePlugin<V>: Plugin,
+    ConfigOptionsPlugin<V>: Plugin,
     ConfigKnownPackPlugin<V>: Plugin,
     ConfigRegistryPlugin<V>: Plugin,
     ConfigFinishPlugin<V>: Plugin,
@@ -38,6 +42,7 @@ where
         builder = builder.add(LoginProfilePlugin::<V>::default());
 
         // Add Config plugins
+        builder = builder.add(ConfigOptionsPlugin::<V>::default());
         builder = builder.add(ConfigKnownPackPlugin::<V>::default());
         builder = builder.add(ConfigRegistryPlugin::<V>::default());
         builder = builder.add(ConfigFinishPlugin::<V>::default());
