@@ -27,6 +27,7 @@ impl DimensionTrait for Overworld {
     const MIN_Y: i32 = -64;
     const MONSTER_SPAWN_LIGHT_LEVEL: MonsterSpawnLightLevel =
         MonsterSpawnLightLevel::Uniform(RangeInclusive::new(0, 7));
+    const MONSTER_SPAWN_BLOCK_LIGHT_LIMIT: i32 = 0;
     const NATURAL: bool = true;
     const PIGLIN_SAFE: bool = false;
     const RESPAWN_ANCHOR_WORKS: bool = false;

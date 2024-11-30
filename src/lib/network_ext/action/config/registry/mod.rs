@@ -9,6 +9,7 @@ use froglight::{
 use crate::{
     network::{ConfigFilter, ConfigTask, FilterResult},
     network_ext::{NetworkExtSystemSet, TARGET},
+    world::DimensionList,
 };
 
 mod v1_21_0;
@@ -48,11 +49,12 @@ where
     /// A system that sends clients registry packets.
     pub fn send_registries(
         query: Query<(Entity, &GameProfile, &ConfigTask<V>), Without<WasSentRegistries>>,
+        dimensions: Res<DimensionList>,
         mut commands: Commands,
     ) {
         for (entity, profile, task) in &query {
             debug!(target: TARGET, "Sending registries to {}", profile.name);
-            V::send_registries(task);
+            V::send_registries(&dimensions, task);
             commands.entity(entity).insert(WasSentRegistries);
         }
     }
@@ -77,5 +79,5 @@ where
     Configuration: State<Self>,
 {
     /// Send registry packets to a client.
-    fn send_registries(task: &ConfigTask<Self>);
+    fn send_registries(dimensions: &DimensionList, task: &ConfigTask<Self>);
 }

@@ -7,4 +7,4 @@ mod login;
 pub use login::*;
 
 mod play;
-// pub use play::*;
+pub use play::*;
