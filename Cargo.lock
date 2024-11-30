@@ -1392,7 +1392,7 @@ dependencies = [
 [[package]]
 name = "froglight"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "froglight-internal",
 ]
@@ -1400,7 +1400,7 @@ dependencies = [
 [[package]]
 name = "froglight-block"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -1410,7 +1410,7 @@ dependencies = [
  "downcast-rs",
  "froglight-macros",
  "froglight-protocol",
- "hashbrown 0.15.2",
+ "hashbrown 0.14.5",
  "parking_lot",
  "phf",
  "rangemap",
@@ -1419,7 +1419,7 @@ dependencies = [
 [[package]]
 name = "froglight-common"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
@@ -1427,7 +1427,7 @@ dependencies = [
  "compact_str",
  "derive_more",
  "glam",
- "hashbrown 0.15.2",
+ "hashbrown 0.14.5",
  "serde",
  "thiserror",
  "uuid",
@@ -1436,7 +1436,7 @@ dependencies = [
 [[package]]
 name = "froglight-entity"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -1453,7 +1453,7 @@ dependencies = [
 [[package]]
 name = "froglight-internal"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy",
  "bytemuck",
@@ -1467,14 +1467,14 @@ dependencies = [
  "froglight-utils",
  "froglight-world",
  "glam",
- "hashbrown 0.15.2",
+ "hashbrown 0.14.5",
  "parking_lot",
 ]
 
 [[package]]
 name = "froglight-macros"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "attribute-derive",
  "convert_case",
@@ -1487,7 +1487,7 @@ dependencies = [
 [[package]]
 name = "froglight-network"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "async-channel 2.3.1",
  "async-compression",
@@ -1513,7 +1513,7 @@ dependencies = [
 [[package]]
 name = "froglight-physics"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -1528,7 +1528,7 @@ dependencies = [
 [[package]]
 name = "froglight-protocol"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy_ecs",
  "bevy_log",
@@ -1540,7 +1540,7 @@ dependencies = [
  "froglight-common",
  "froglight-macros",
  "glam",
- "hashbrown 0.15.2",
+ "hashbrown 0.14.5",
  "serde",
  "serde_json",
  "simdnbt",
@@ -1552,7 +1552,7 @@ dependencies = [
 [[package]]
 name = "froglight-registry"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "compact_str",
  "froglight-macros",
@@ -1579,7 +1579,7 @@ dependencies = [
 [[package]]
 name = "froglight-utils"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -1590,13 +1590,13 @@ dependencies = [
  "froglight-network",
  "froglight-protocol",
  "froglight-world",
- "hashbrown 0.15.2",
+ "hashbrown 0.14.5",
 ]
 
 [[package]]
 name = "froglight-world"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#da56c467611a26931649df398a90a6296a11463e"
+source = "git+https://github.com/EightFactorial/FrogLight#86307accaf65794fffc5976f5989c370c1d5e6a2"
 dependencies = [
  "bevy_ecs",
  "bevy_log",
@@ -1747,8 +1747,6 @@ version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 dependencies = [
- "allocator-api2",
- "equivalent",
  "foldhash",
 ]
 
