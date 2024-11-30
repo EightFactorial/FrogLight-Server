@@ -17,7 +17,7 @@ mod task;
 mod version;
 pub use version::ConfigTrait;
 
-use super::{LoginPacketSet, LoginStateEvent, LoginSystemSet};
+use super::LoginStateEvent;
 
 static TARGET: &str = "CONF";
 
@@ -39,8 +39,8 @@ where
             .get_schedule(PostUpdate)
             .is_some_and(|sched| !sched.graph().contains_set(ConfigSystemSet))
         {
-            app.configure_sets(PreUpdate, ConfigPacketSet.after(LoginPacketSet));
-            app.configure_sets(PostUpdate, ConfigSystemSet.after(LoginSystemSet));
+            app.configure_sets(PreUpdate, ConfigPacketSet);
+            app.configure_sets(PostUpdate, ConfigSystemSet);
         }
 
         app.add_event::<ConfigPacketEvent<V>>();

@@ -17,7 +17,7 @@ pub use types::*;
 mod version;
 pub use version::PlayTrait;
 
-use super::{ConfigPacketSet, ConfigStateEvent, ConfigSystemSet};
+use super::ConfigStateEvent;
 
 static TARGET: &str = "PLAY";
 
@@ -39,8 +39,8 @@ where
             .get_schedule(PostUpdate)
             .is_some_and(|sched| !sched.graph().contains_set(PlayPacketSet))
         {
-            app.configure_sets(PreUpdate, PlayPacketSet.after(ConfigPacketSet));
-            app.configure_sets(PostUpdate, PlaySystemSet.after(ConfigSystemSet));
+            app.configure_sets(PreUpdate, PlayPacketSet);
+            app.configure_sets(PostUpdate, PlaySystemSet);
         }
 
         app.add_event::<PlayPacketEvent<V>>();

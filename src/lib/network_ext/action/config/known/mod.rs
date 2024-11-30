@@ -8,7 +8,7 @@ use froglight::{
 
 use crate::{
     network::{ConfigFilter, ConfigPacketEvent, ConfigTask, FilterResult},
-    network_ext::{NetworkExtSystemSet, TARGET},
+    network_ext::{NetworkExtConfigSet, TARGET},
 };
 
 mod v1_21_0;
@@ -29,9 +29,7 @@ where
 
         app.add_systems(
             Update,
-            (Self::send_known_packs, Self::receive_known_packs)
-                .run_if(any_with_component::<ConfigTask<V>>)
-                .in_set(NetworkExtSystemSet),
+            (Self::send_known_packs, Self::receive_known_packs).in_set(NetworkExtConfigSet),
         );
     }
 }

@@ -8,7 +8,7 @@ use froglight::{
 
 use crate::{
     network::{ConfigFilter, ConfigTask, FilterResult},
-    network_ext::{NetworkExtSystemSet, TARGET},
+    network_ext::{NetworkExtConfigSet, TARGET},
     world::DimensionList,
 };
 
@@ -27,12 +27,7 @@ where
         let mut filters = app.world_mut().resource_mut::<ConfigFilter<V>>();
         filters.add_filter(Self::require_configuration_packets);
 
-        app.add_systems(
-            Update,
-            Self::send_registries
-                .run_if(any_with_component::<ConfigTask<V>>)
-                .in_set(NetworkExtSystemSet),
-        );
+        app.add_systems(Update, Self::send_registries.in_set(NetworkExtConfigSet));
     }
 }
 

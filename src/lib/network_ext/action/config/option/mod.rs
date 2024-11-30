@@ -9,7 +9,7 @@ use froglight::{
 
 use crate::{
     network::{ConfigFilter, ConfigPacketEvent, FilterResult},
-    network_ext::{NetworkExtSystemSet, TARGET},
+    network_ext::{NetworkExtConfigSet, TARGET},
 };
 
 mod v1_21_0;
@@ -27,12 +27,7 @@ where
         let mut filters = app.world_mut().resource_mut::<ConfigFilter<V>>();
         filters.add_filter(Self::require_configuration);
 
-        app.add_systems(
-            Update,
-            Self::receive_client_configuration
-                .run_if(on_event::<ConfigPacketEvent<V>>)
-                .in_set(NetworkExtSystemSet),
-        );
+        app.add_systems(Update, Self::receive_client_configuration.in_set(NetworkExtConfigSet));
     }
 }
 

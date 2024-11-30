@@ -8,7 +8,7 @@ use froglight::{
 
 use crate::{
     network::PlayTask,
-    network_ext::{NetworkExtSystemSet, TARGET},
+    network_ext::{NetworkExtPlaySet, TARGET},
     world::{DimensionList, EntityIds},
 };
 
@@ -24,12 +24,7 @@ where
     Play: State<V>,
 {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            Self::initialize_client
-                .run_if(any_with_component::<PlayTask<V>>)
-                .in_set(NetworkExtSystemSet),
-        );
+        app.add_systems(Update, Self::initialize_client.in_set(NetworkExtPlaySet));
     }
 }
 

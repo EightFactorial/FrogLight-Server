@@ -9,7 +9,7 @@ use froglight::{
 use super::{ClientConfiguration, ClientKnownPacks, WasSentRegistries};
 use crate::{
     network::{ConfigFilter, ConfigTask, FilterResult},
-    network_ext::{NetworkExtSystemSet, TARGET},
+    network_ext::{NetworkExtConfigSet, NetworkExtPlaySet, TARGET},
 };
 
 mod v1_21_0;
@@ -30,10 +30,11 @@ where
         app.add_systems(
             Update,
             (
-                Self::send_finish.run_if(any_with_component::<ConfigTask<V>>),
-                Self::remove_finish.run_if(any_component_removed::<ConfigTask<V>>),
-            )
-                .in_set(NetworkExtSystemSet),
+                Self::send_finish.in_set(NetworkExtConfigSet),
+                Self::remove_finish
+                    .run_if(any_component_removed::<ConfigTask<V>>)
+                    .in_set(NetworkExtPlaySet),
+            ),
         );
     }
 }

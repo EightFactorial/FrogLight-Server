@@ -8,7 +8,7 @@ use froglight::{
 
 use crate::{
     network::{FilterResult, LoginFilter, LoginTask},
-    network_ext::{NetworkExtSystemSet, TARGET},
+    network_ext::{NetworkExtLoginSet, TARGET},
 };
 
 mod v1_21_0;
@@ -28,12 +28,7 @@ where
         let mut filters = app.world_mut().resource_mut::<LoginFilter<V>>();
         filters.add_filter(Self::require_sent_profile);
 
-        app.add_systems(
-            Update,
-            Self::send_login_profiles
-                .run_if(any_with_component::<LoginTask<V>>)
-                .in_set(NetworkExtSystemSet),
-        );
+        app.add_systems(Update, Self::send_login_profiles.in_set(NetworkExtLoginSet));
     }
 }
 

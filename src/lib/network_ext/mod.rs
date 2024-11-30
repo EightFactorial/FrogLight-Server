@@ -21,14 +21,18 @@ static TARGET: &str = "NEXT";
 /// A [`PluginGroup`] for the network extension plugins.
 ///
 /// Contains:
+/// - [`SystemSetPlugin`] for adding and configuring system sets.
 /// - [`LoginProfilePlugin`] for sending login profiles.
 /// - [`ConfigKnownPackPlugin`] for sending known resourcepacks.
 /// - [`ConfigRegistryPlugin`] for sending registries.
+/// - [`ConfigFinishPlugin`] for sending the config finish packet.
+/// - [`PlayStartPlugin`] for handling the play start packet.
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct NetworkExtPlugins<V: Version>(PhantomData<V>);
 
 impl<V: Version> PluginGroup for NetworkExtPlugins<V>
 where
+    SystemSetPlugin<V>: Plugin,
     LoginProfilePlugin<V>: Plugin,
     ConfigOptionsPlugin<V>: Plugin,
     ConfigKnownPackPlugin<V>: Plugin,
@@ -38,6 +42,7 @@ where
 {
     fn build(self) -> PluginGroupBuilder {
         let mut builder = PluginGroupBuilder::start::<Self>();
+        builder = builder.add(SystemSetPlugin::<V>::default());
 
         // Add Login plugins
         builder = builder.add(LoginProfilePlugin::<V>::default());
