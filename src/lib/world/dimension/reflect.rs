@@ -119,8 +119,11 @@ pub trait DimensionTrait: 'static {
     const MONSTER_SPAWN_LIGHT_LEVEL: MonsterSpawnLightLevel;
 }
 
+/// The light level monsters spawn at in a dimension.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Reflect)]
 pub enum MonsterSpawnLightLevel {
+    /// Monsters spawn at a constant light level.
     Constant(u8),
+    /// Monsters spawn at a light level within a range.
     Uniform(RangeInclusive<u8>),
 }

@@ -4,7 +4,7 @@ use bevy::reflect::Reflect;
 use compact_str::CompactString;
 use froglight::prelude::ResourceKey;
 
-use crate::{world::dimension::reflect::MonsterSpawnLightLevel, DimensionTrait, ReflectDimension};
+use crate::world::{DimensionTrait, MonsterSpawnLightLevel, ReflectDimension};
 
 /// The overworld dimension.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect)]

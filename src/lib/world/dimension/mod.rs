@@ -4,7 +4,7 @@ mod list;
 pub use list::DimensionList;
 
 mod reflect;
-pub use reflect::{DimensionTrait, ReflectDimension};
+pub use reflect::{DimensionTrait, MonsterSpawnLightLevel, ReflectDimension};
 
 mod types;
 pub use types::Overworld;

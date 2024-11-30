@@ -1,7 +1,7 @@
 //! TODO
 
-mod plugin;
-pub use plugin::*;
+pub mod plugin;
+pub use plugin::ServerPlugins;
 
 pub mod network;
 pub use network::NetworkPlugins;
@@ -9,5 +9,5 @@ pub use network::NetworkPlugins;
 pub mod network_ext;
 pub use network_ext::NetworkExtPlugins;
 
-mod world;
-pub use world::*;
+pub mod world;
+pub use world::WorldPlugins;
