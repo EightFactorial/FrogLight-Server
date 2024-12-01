@@ -6,7 +6,7 @@ use froglight::{
 };
 
 use super::ConfigRegistryTrait;
-use crate::{network::ConfigTask, world::DimensionList};
+use crate::{network::ConfigTask, registry::dimension::DimensionList};
 
 impl ConfigRegistryTrait for V1_21_0 {
     fn send_registries(dimensions: &DimensionList, task: &ConfigTask<Self>) {
@@ -30,7 +30,8 @@ impl ConfigRegistryTrait for V1_21_0 {
     }
 }
 
-// TODO: Don't hardcode regitries
+// TODO: Support custom registries
+// TODO: Support custom registry data
 
 static WOLF_VARIANT: LazyLock<DynamicRegistriesPacket> =
     LazyLock::new(|| DynamicRegistriesPacket {

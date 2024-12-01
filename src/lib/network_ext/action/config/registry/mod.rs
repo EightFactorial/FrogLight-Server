@@ -10,7 +10,7 @@ use super::RequiredFinishComponents;
 use crate::{
     network::{ConfigFilter, ConfigTask, FilterResult},
     network_ext::{NetworkExtConfigSet, TARGET},
-    world::DimensionList,
+    registry::dimension::DimensionList,
 };
 
 mod v1_21_0;

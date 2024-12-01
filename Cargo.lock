@@ -1765,7 +1765,7 @@ dependencies = [
 [[package]]
 name = "froglight"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "froglight-internal",
 ]
@@ -1773,7 +1773,7 @@ dependencies = [
 [[package]]
 name = "froglight-block"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -1792,7 +1792,7 @@ dependencies = [
 [[package]]
 name = "froglight-common"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
@@ -1809,7 +1809,7 @@ dependencies = [
 [[package]]
 name = "froglight-entity"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -1826,7 +1826,7 @@ dependencies = [
 [[package]]
 name = "froglight-internal"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy",
  "bytemuck",
@@ -1847,7 +1847,7 @@ dependencies = [
 [[package]]
 name = "froglight-macros"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "attribute-derive",
  "convert_case",
@@ -1860,7 +1860,7 @@ dependencies = [
 [[package]]
 name = "froglight-network"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "async-channel 2.3.1",
  "async-compression",
@@ -1886,7 +1886,7 @@ dependencies = [
 [[package]]
 name = "froglight-physics"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -1901,7 +1901,7 @@ dependencies = [
 [[package]]
 name = "froglight-protocol"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy_ecs",
  "bevy_log",
@@ -1925,7 +1925,7 @@ dependencies = [
 [[package]]
 name = "froglight-registry"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "compact_str",
  "froglight-macros",
@@ -1953,7 +1953,7 @@ dependencies = [
 [[package]]
 name = "froglight-utils"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -1970,7 +1970,7 @@ dependencies = [
 [[package]]
 name = "froglight-world"
 version = "0.1.0"
-source = "git+https://github.com/EightFactorial/FrogLight#d89681749ee98383b81b158056aeec8793b39421"
+source = "git+https://github.com/EightFactorial/FrogLight#4c7924767811790cc3ddb4756ec4a11f102f4935"
 dependencies = [
  "bevy_ecs",
  "bevy_log",

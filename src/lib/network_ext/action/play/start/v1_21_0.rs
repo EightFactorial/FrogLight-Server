@@ -4,7 +4,7 @@ use froglight::{
 };
 
 use super::PlayStartTrait;
-use crate::{network::PlayTask, world::DimensionList};
+use crate::{network::PlayTask, registry::dimension::DimensionList};
 
 const DIMENSION: ResourceKey = ResourceKey::const_new("minecraft:overworld");
 

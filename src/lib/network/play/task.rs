@@ -2,7 +2,7 @@ use bevy::{ecs::system::SystemState, prelude::*};
 use compact_str::ToCompactString;
 use froglight::{
     network::connection::NetworkDirection,
-    prelude::{State, *},
+    prelude::{entity::Player, State, *},
 };
 
 use super::{version::PlayTrait, PlayFilter, PlayPacketEvent, PlayTask};
@@ -38,7 +38,7 @@ where
     ) {
         for event in events.read() {
             if let Some(conn) = event.take() {
-                commands.entity(event.entity).insert(V::new_play(conn.play()));
+                commands.entity(event.entity).insert((V::new_play(conn.play()), Player));
             } else if let Ok(profile) = query.get(event.entity) {
                 error!(target: TARGET, "Failed to receive connection for {}", profile.name);
             } else {
@@ -74,9 +74,15 @@ where
                 }
                 Some(Err(err)) => {
                     if let Some(profile) = profile {
-                        error!(target: TARGET, "Failed during play {}: {err}", profile.name);
+                        if let ConnectionError::ConnectionClosed = err {
+                            info!(target: TARGET, "{} disconnected", profile.name);
+                        } else {
+                            error!(target: TARGET, "{} disconnected: {err}", profile.name);
+                        }
+                    } else if let ConnectionError::ConnectionClosed = err {
+                        warn!(target: TARGET, "Entity {entity} disconnected");
                     } else {
-                        error!(target: TARGET, "Failed during play {entity}: {err}");
+                        error!(target: TARGET, "Entity {entity} disconnected: {err}");
                     }
 
                     debug!(target: TARGET, "Despawning Entity {entity}");

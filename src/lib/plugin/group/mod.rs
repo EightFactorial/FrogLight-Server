@@ -19,6 +19,7 @@ use crate::{
     network::{NetworkPlugins, SocketPlugin},
     network_ext::NetworkExtPlugins,
     world::WorldPlugins,
+    RegistryPlugins,
 };
 
 /// A [`PluginGroup`] for creating a server.
@@ -111,8 +112,8 @@ impl PluginGroup for ServerPlugins {
             .add_group(NetworkPlugins::<V1_21_0>::from_socket(self.socket))
             .add_group(NetworkExtPlugins::<V1_21_0>::default());
 
-        // Add the `WorldPlugins`.
-        builder = builder.add_group(WorldPlugins);
+        // Add the `RegistryPlugins` and `WorldPlugins`.
+        builder = builder.add_group(RegistryPlugins).add_group(WorldPlugins);
 
         builder
     }

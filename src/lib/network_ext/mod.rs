@@ -8,7 +8,7 @@ use froglight::prelude::Version;
 pub mod action;
 use action::{
     ConfigFinishPlugin, ConfigKnownPackPlugin, ConfigOptionsPlugin, ConfigRegistryPlugin,
-    LoginProfilePlugin, PlayStartPlugin,
+    LoginProfilePlugin, PlayChunkPlugin, PlayKeepAlivePlugin, PlaySpawnPlugin, PlayStartPlugin,
 };
 
 pub mod filter;
@@ -39,6 +39,9 @@ where
     ConfigRegistryPlugin<V>: Plugin,
     ConfigFinishPlugin<V>: Plugin,
     PlayStartPlugin<V>: Plugin,
+    PlaySpawnPlugin<V>: Plugin,
+    PlayKeepAlivePlugin<V>: Plugin,
+    PlayChunkPlugin<V>: Plugin,
 {
     fn build(self) -> PluginGroupBuilder {
         let mut builder = PluginGroupBuilder::start::<Self>();
@@ -55,6 +58,9 @@ where
 
         // Add Play plugins
         builder = builder.add(PlayStartPlugin::<V>::default());
+        builder = builder.add(PlaySpawnPlugin::<V>::default());
+        builder = builder.add(PlayKeepAlivePlugin::<V>::default());
+        builder = builder.add(PlayChunkPlugin::<V>::default());
 
         builder
     }

@@ -9,7 +9,8 @@ use froglight::{
 use crate::{
     network::PlayTask,
     network_ext::{NetworkExtPlaySet, TARGET},
-    world::{DimensionList, EntityIds},
+    registry::dimension::DimensionList,
+    world::EntityIds,
 };
 
 mod v1_21_0;
