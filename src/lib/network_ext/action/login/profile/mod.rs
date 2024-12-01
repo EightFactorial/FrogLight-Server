@@ -25,10 +25,12 @@ where
     Login: State<V>,
 {
     fn build(&self, app: &mut App) {
+        app.add_systems(Update, Self::send_login_profiles.in_set(NetworkExtLoginSet));
+    }
+
+    fn finish(&self, app: &mut App) {
         let mut filters = app.world_mut().resource_mut::<LoginFilter<V>>();
         filters.add_filter(Self::require_sent_profile);
-
-        app.add_systems(Update, Self::send_login_profiles.in_set(NetworkExtLoginSet));
     }
 }
 

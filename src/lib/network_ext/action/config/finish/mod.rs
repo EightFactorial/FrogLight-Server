@@ -1,12 +1,11 @@
-use std::marker::PhantomData;
+use std::{any::TypeId, marker::PhantomData};
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashSet};
 use froglight::{
     network::connection::NetworkDirection,
     prelude::{State, *},
 };
 
-use super::{ClientConfiguration, ClientKnownPacks, WasSentRegistries};
 use crate::{
     network::{ConfigFilter, ConfigTask, FilterResult},
     network_ext::{NetworkExtConfigSet, NetworkExtPlaySet, TARGET},
@@ -18,24 +17,52 @@ mod v1_21_0;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ConfigFinishPlugin<V: Version>(PhantomData<V>);
 
+/// A [`Resource`] that stores the required [`Components`](Component)
+/// for connections to finish [`Configuration`].
+#[derive(Debug, Default, Clone, PartialEq, Eq, Resource)]
+pub struct RequiredFinishComponents<V: Version> {
+    components: HashSet<TypeId>,
+    _phantom: PhantomData<V>,
+}
+
+impl<V: Version> RequiredFinishComponents<V> {
+    /// Adds a [`Component`] to the list of required components.
+    ///
+    /// Returns `true` if the component was new,
+    /// `false` if it was already required.
+    pub fn add<T: Component>(&mut self) -> bool { self.components.insert(TypeId::of::<T>()) }
+
+    /// Returns `true` if the component is required.
+    #[must_use]
+    pub fn contains<T: Component>(&self) -> bool { self.contains_type(&TypeId::of::<T>()) }
+
+    /// Returns `true` if the component is required.
+    #[must_use]
+    pub fn contains_type(&self, type_id: &TypeId) -> bool { self.components.contains(type_id) }
+}
+
 impl<V: Version + ConfigFinishTrait> Plugin for ConfigFinishPlugin<V>
 where
     Clientbound: NetworkDirection<V, Configuration>,
     Configuration: State<V>,
 {
     fn build(&self, app: &mut App) {
-        let mut filters = app.world_mut().resource_mut::<ConfigFilter<V>>();
-        filters.add_filter(Self::require_finish_packet);
+        app.init_resource::<RequiredFinishComponents<V>>();
 
         app.add_systems(
             Update,
             (
-                Self::send_finish.in_set(NetworkExtConfigSet),
-                Self::remove_finish
+                Self::send_finish_packet.in_set(NetworkExtConfigSet),
+                Self::remove_finish_marker
                     .run_if(any_component_removed::<ConfigTask<V>>)
                     .in_set(NetworkExtPlaySet),
             ),
         );
+    }
+
+    fn finish(&self, app: &mut App) {
+        let mut filters = app.world_mut().resource_mut::<ConfigFilter<V>>();
+        filters.add_filter(Self::require_finish_packet);
     }
 }
 
@@ -50,28 +77,29 @@ where
     Configuration: State<V>,
 {
     /// A system that sends the finish packet to clients.
-    #[expect(clippy::type_complexity)]
-    pub fn send_finish(
-        query: Query<
-            (Entity, &GameProfile, &ConfigTask<V>),
-            (
-                With<ClientConfiguration>,
-                With<ClientKnownPacks>,
-                With<WasSentRegistries>,
-                Without<WasSentFinish>,
-            ),
-        >,
+    pub fn send_finish_packet(
+        world: &World,
+        query: Query<(Entity, &GameProfile, &ConfigTask<V>), Without<WasSentFinish>>,
+        required: Res<RequiredFinishComponents<V>>,
         mut commands: Commands,
     ) {
         for (entity, profile, task) in &query {
-            debug!(target: TARGET, "Sending finish to {}", profile.name);
-            V::send_finish(task);
-            commands.entity(entity).insert(WasSentFinish);
+            let required_count = required.components.len();
+            if world
+                .inspect_entity(entity)
+                .filter(|c| c.type_id().is_some_and(|c| required.contains_type(&c)))
+                .count()
+                == required_count
+            {
+                debug!(target: TARGET, "Sending finish to {}", profile.name);
+                V::send_finish(task);
+                commands.entity(entity).insert(WasSentFinish);
+            }
         }
     }
 
     /// A system that removes the finish marker from clients.
-    pub fn remove_finish(
+    pub fn remove_finish_marker(
         query: Query<(Entity, &GameProfile), With<WasSentFinish>>,
         mut commands: Commands,
     ) {

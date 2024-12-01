@@ -6,6 +6,7 @@ use froglight::{
     prelude::{State, *},
 };
 
+use super::RequiredFinishComponents;
 use crate::{
     network::{ConfigFilter, ConfigPacketEvent, ConfigTask, FilterResult},
     network_ext::{NetworkExtConfigSet, TARGET},
@@ -24,13 +25,18 @@ where
     Configuration: State<V>,
 {
     fn build(&self, app: &mut App) {
-        let mut filters = app.world_mut().resource_mut::<ConfigFilter<V>>();
-        filters.add_filter(Self::require_resourcepacks);
-
         app.add_systems(
             Update,
             (Self::send_known_packs, Self::receive_known_packs).in_set(NetworkExtConfigSet),
         );
+    }
+
+    fn finish(&self, app: &mut App) {
+        let mut filters = app.world_mut().resource_mut::<ConfigFilter<V>>();
+        filters.add_filter(Self::require_resourcepacks);
+
+        let mut required = app.world_mut().resource_mut::<RequiredFinishComponents<V>>();
+        required.add::<ClientKnownPacks>();
     }
 }
 
