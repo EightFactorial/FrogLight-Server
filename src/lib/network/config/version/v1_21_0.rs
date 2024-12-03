@@ -1,6 +1,5 @@
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
-use bevy::log::trace;
 use froglight::{
     network::versions::v1_21_0::{
         configuration::{
@@ -29,7 +28,7 @@ impl ConfigTrait for V1_21_0 {
                 while !finished.load(Ordering::Relaxed) || pending.load(Ordering::Relaxed) > 0 {
                     if let Ok(packet) = channel.recv().await {
                         #[cfg(debug_assertions)]
-                        trace!(
+                        bevy::log::trace!(
                             "Sending config packet: {packet:?}, pending: {}",
                             pending.load(Ordering::Relaxed)
                         );
@@ -40,8 +39,7 @@ impl ConfigTrait for V1_21_0 {
                             | ConfigurationClientboundPackets::KeepAlive(..)
                             | ConfigurationClientboundPackets::CommonPing(..)
                             | ConfigurationClientboundPackets::ResourcePackSend(..)
-                            | ConfigurationClientboundPackets::SelectKnownPacks(..)
-                            | ConfigurationClientboundPackets::ServerLinks(..) => {
+                            | ConfigurationClientboundPackets::SelectKnownPacks(..) => {
                                 pending.fetch_add(1, Ordering::Relaxed);
                             }
                             _ => {}
@@ -58,7 +56,7 @@ impl ConfigTrait for V1_21_0 {
                 while !finished.load(Ordering::Relaxed) || pending.load(Ordering::Relaxed) > 0 {
                     let packet = read.recv().await?;
                     #[cfg(debug_assertions)]
-                    trace!(
+                    bevy::log::trace!(
                         "Received config packet: {packet:?}, pending: {}",
                         pending.load(Ordering::Relaxed)
                     );

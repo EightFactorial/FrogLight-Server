@@ -17,6 +17,7 @@ mod version;
 pub use version::ConfigTrait;
 
 use super::login::LoginStateEvent;
+use crate::dimension::subapp::DimensionMarker;
 
 /// A [`Plugin`] that receives logged in and reconfiguring clients.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
@@ -33,7 +34,11 @@ where
         app.add_event::<ConfigStateEvent<V>>();
         app.add_event::<ConfigPacketEvent<V>>();
         app.init_resource::<ConfigFilter<V>>();
-        app.init_resource::<ConfigRequiredComponents<V>>();
+
+        // Initialize and add required components
+        let mut required = ConfigRequiredComponents::<V>::new_empty();
+        required.add_required::<DimensionMarker>();
+        app.insert_resource(required);
 
         // Add systems
         app.add_systems(

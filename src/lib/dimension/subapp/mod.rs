@@ -8,7 +8,7 @@ use bevy::{
 use derive_more::derive::From;
 
 mod extract;
-pub use extract::DimensionMarker;
+pub use extract::{DimensionMarker, DimensionTracker};
 
 mod schedule;
 pub use schedule::Network;

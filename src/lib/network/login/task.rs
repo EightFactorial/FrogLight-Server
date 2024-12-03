@@ -60,18 +60,6 @@ where
         }
     }
 
-    /// A system that receives packets from all login tasks.
-    pub fn receive_packets(
-        query: Query<(Entity, &LoginTask<V>)>,
-        mut events: EventWriter<LoginPacketEvent<V>>,
-    ) {
-        for (entity, task) in &query {
-            while let Some(packet) = task.recv() {
-                events.send(LoginPacketEvent::new(entity, packet));
-            }
-        }
-    }
-
     /// A system that completes all logins that have the required components.
     pub fn complete_logins(
         query: Query<(Entity, &GameProfile, &LoginTask<V>), Without<CompletedLogin>>,
@@ -84,6 +72,24 @@ where
                 debug!("Sending profile to {}", profile.name);
                 V::send_profile(profile, task);
                 commands.entity(entity).insert(CompletedLogin);
+            }
+        }
+    }
+}
+
+impl<V: Version> LoginTask<V>
+where
+    Clientbound: NetworkDirection<V, Login>,
+    Login: State<V>,
+{
+    /// A system that receives packets from all login tasks.
+    pub fn receive_packets(
+        query: Query<(Entity, &LoginTask<V>)>,
+        mut events: EventWriter<LoginPacketEvent<V>>,
+    ) {
+        for (entity, task) in &query {
+            while let Some(packet) = task.recv() {
+                events.send(LoginPacketEvent::new(entity, packet));
             }
         }
     }

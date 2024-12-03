@@ -89,7 +89,7 @@ impl DimensionMarker {
 /// A component containing the
 /// linked entity in a dimension's [`SubApp`].
 #[derive(Debug, Deref, Component)]
-struct DimensionTracker(Entity);
+pub struct DimensionTracker(Entity);
 
 /// A component containing the
 /// linked entity in the main [`App`].

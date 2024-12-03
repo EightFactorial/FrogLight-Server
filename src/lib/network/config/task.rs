@@ -15,13 +15,6 @@ where
     Login: State<V>,
     Configuration: State<V>,
 {
-    /// Create a new [`ConfigTask`] with the given [`Connection`]
-    #[must_use]
-    pub fn new(conn: Connection<V, Configuration, Clientbound>) -> Self {
-        let (send, recv) = channel();
-        Self::spawn(send, V::config(conn, recv))
-    }
-
     /// A system that configures incoming logins.
     #[expect(clippy::missing_panics_doc)]
     pub fn receive_logins(
@@ -36,17 +29,18 @@ where
             }
         }
     }
+}
 
-    /// A system that receives packets from all configuration tasks.
-    pub fn receive_packets(
-        query: Query<(Entity, &ConfigTask<V>)>,
-        mut events: EventWriter<ConfigPacketEvent<V>>,
-    ) {
-        for (entity, task) in &query {
-            while let Some(packet) = task.recv() {
-                events.send(ConfigPacketEvent::new(entity, packet));
-            }
-        }
+impl<V: Version + ConfigTrait> ConfigTask<V>
+where
+    Clientbound: NetworkDirection<V, Configuration>,
+    Configuration: State<V>,
+{
+    /// Create a new [`ConfigTask`] with the given [`Connection`]
+    #[must_use]
+    pub fn new(conn: Connection<V, Configuration, Clientbound>) -> Self {
+        let (send, recv) = channel();
+        Self::spawn(send, V::config(conn, recv))
     }
 
     /// A system that completes all configurations that have the required
@@ -62,6 +56,24 @@ where
                 debug!("Sending ready to {}", profile.name);
                 V::send_finish(task);
                 commands.entity(entity).insert(CompletedConfig);
+            }
+        }
+    }
+}
+
+impl<V: Version> ConfigTask<V>
+where
+    Clientbound: NetworkDirection<V, Configuration>,
+    Configuration: State<V>,
+{
+    /// A system that receives packets from all configuration tasks.
+    pub fn receive_packets(
+        query: Query<(Entity, &ConfigTask<V>)>,
+        mut events: EventWriter<ConfigPacketEvent<V>>,
+    ) {
+        for (entity, task) in &query {
+            while let Some(packet) = task.recv() {
+                events.send(ConfigPacketEvent::new(entity, packet));
             }
         }
     }

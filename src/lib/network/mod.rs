@@ -14,6 +14,9 @@ pub use config::ConfigPlugin;
 pub mod login;
 pub use login::LoginPlugin;
 
+pub mod play;
+pub use play::PlayPlugin;
+
 pub mod socket;
 pub use socket::SocketPlugin;
 
@@ -106,6 +109,7 @@ where
     SocketPlugin<V>: Plugin,
     LoginPlugin<V>: Plugin,
     ConfigPlugin<V>: Plugin,
+    PlayPlugin<V>: Plugin,
 {
     fn build(self) -> PluginGroupBuilder {
         let mut builder = PluginGroupBuilder::start::<Self>();
@@ -117,8 +121,8 @@ where
 
         // Add the `LoginPlugin` using the configured authentication server.
         builder = builder.add(LoginPlugin::<V>::from_option(self.auth_server));
-        // Add the `ConfigPlugin`.
-        builder = builder.add(ConfigPlugin::<V>::default());
+        // Add the `ConfigPlugin and `PlayPlugin`.
+        builder = builder.add(ConfigPlugin::<V>::default()).add(PlayPlugin::<V>::default());
 
         builder
     }

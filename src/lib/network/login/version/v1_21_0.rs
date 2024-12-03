@@ -1,6 +1,5 @@
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
-use bevy::log::trace;
 use froglight::{
     network::versions::v1_21_0::{
         login::{LoginClientboundPackets, LoginServerboundPackets, LoginSuccessPacket},
@@ -32,7 +31,7 @@ impl LoginTrait for V1_21_0 {
                 while !finished.load(Ordering::Relaxed) || pending.load(Ordering::Relaxed) > 0 {
                     if let Ok(packet) = channel.recv().await {
                         #[cfg(debug_assertions)]
-                        trace!(
+                        bevy::log::trace!(
                             "Sending login packet: {packet:?}, pending: {}",
                             pending.load(Ordering::Relaxed)
                         );
@@ -57,7 +56,7 @@ impl LoginTrait for V1_21_0 {
                 while !finished.load(Ordering::Relaxed) || pending.load(Ordering::Relaxed) > 0 {
                     let packet = read.recv().await?;
                     #[cfg(debug_assertions)]
-                    trace!(
+                    bevy::log::trace!(
                         "Received login packet: {packet:?}, pending: {}",
                         pending.load(Ordering::Relaxed)
                     );
