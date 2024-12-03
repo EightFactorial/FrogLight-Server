@@ -8,6 +8,9 @@ use froglight::{network::versions::v1_21_0::V1_21_0, prelude::Version};
 
 pub mod common;
 
+pub mod config;
+pub use config::ConfigPlugin;
+
 pub mod login;
 pub use login::LoginPlugin;
 
@@ -102,6 +105,7 @@ impl<V: Version> PluginGroup for NetworkPlugins<V>
 where
     SocketPlugin<V>: Plugin,
     LoginPlugin<V>: Plugin,
+    ConfigPlugin<V>: Plugin,
 {
     fn build(self) -> PluginGroupBuilder {
         let mut builder = PluginGroupBuilder::start::<Self>();
@@ -113,6 +117,8 @@ where
 
         // Add the `LoginPlugin` using the configured authentication server.
         builder = builder.add(LoginPlugin::<V>::from_option(self.auth_server));
+        // Add the `ConfigPlugin`.
+        builder = builder.add(ConfigPlugin::<V>::default());
 
         builder
     }

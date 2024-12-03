@@ -86,7 +86,7 @@ where
         app.add_systems(
             PostUpdate,
             (
-                LoginTask::<V>::receive_logins.run_if(on_event::<ConnectionRequestEvent<V>>),
+                LoginTask::<V>::receive_requests.run_if(on_event::<ConnectionRequestEvent<V>>),
                 LoginTask::<V>::poll_tasks.run_if(any_with_component::<LoginTask<V>>),
             ),
         );

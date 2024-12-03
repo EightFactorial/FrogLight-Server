@@ -7,7 +7,11 @@ use froglight::{
 use super::{
     AuthenticationServer, LoginPacketEvent, LoginRequiredComponents, LoginTask, LoginTrait,
 };
-use crate::network::{common::channel, login::CompletedLogin, socket::ConnectionRequestEvent};
+use crate::network::{
+    common::channel,
+    login::{CompletedLogin, LoginStateEvent},
+    socket::ConnectionRequestEvent,
+};
 
 impl<V: Version + LoginTrait> LoginTask<V>
 where
@@ -27,7 +31,7 @@ where
     }
 
     /// A system that authenticates incoming connection requests.
-    pub fn receive_logins(
+    pub fn receive_requests(
         mut events: EventReader<ConnectionRequestEvent<V>>,
         auth: Res<AuthenticationServer<V>>,
         resolver: Res<Resolver>,
@@ -88,13 +92,15 @@ where
     /// despawns them if they are done.
     pub fn poll_tasks(
         mut query: Query<(Entity, &GameProfile, &mut LoginTask<V>)>,
+        mut events: EventWriter<LoginStateEvent<V>>,
         mut commands: Commands,
     ) {
         for (entity, profile, mut task) in &mut query {
             match task.poll() {
-                Some(Ok(_conn)) => {
+                Some(Ok(conn)) => {
                     info!("Logged in {}", profile.name);
                     commands.entity(entity).remove::<LoginTask<V>>();
+                    events.send(LoginStateEvent::<V>::new(entity, conn));
                 }
                 Some(Err(err)) => {
                     error!("Login failed for {}: {err}", profile.name);

@@ -31,7 +31,11 @@ impl LoginTrait for V1_21_0 {
             async {
                 while !finished.load(Ordering::Relaxed) || pending.load(Ordering::Relaxed) > 0 {
                     if let Ok(packet) = channel.recv().await {
-                        trace!("Sending login packet: {packet:?}");
+                        #[cfg(debug_assertions)]
+                        trace!(
+                            "Sending login packet: {packet:?}, pending: {}",
+                            pending.load(Ordering::Relaxed)
+                        );
 
                         // Increment the pending counter if the packet is a request
                         if matches!(
@@ -52,7 +56,11 @@ impl LoginTrait for V1_21_0 {
             async {
                 while !finished.load(Ordering::Relaxed) || pending.load(Ordering::Relaxed) > 0 {
                     let packet = read.recv().await?;
-                    trace!("Received login packet: {packet:?}");
+                    #[cfg(debug_assertions)]
+                    trace!(
+                        "Received login packet: {packet:?}, pending: {}",
+                        pending.load(Ordering::Relaxed)
+                    );
 
                     // Decrement the pending counter if the packet is a response
                     if matches!(
