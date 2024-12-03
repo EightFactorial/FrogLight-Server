@@ -3,7 +3,7 @@
 //! Includes a custom taskpool configuration,
 //! [`TASKPOOL_SETTINGS`], for bevy's [`TaskPoolPlugin`].
 
-use std::{net::SocketAddr, str::FromStr};
+use std::net::SocketAddr;
 
 use bevy::{
     app::{PluginGroup, PluginGroupBuilder},
@@ -13,9 +13,10 @@ use bevy::{
 };
 
 mod taskpool;
+use froglight::network::versions::v1_21_0::V1_21_0;
 pub use taskpool::TASKPOOL_SETTINGS;
 
-use crate::dimension::DimensionPlugin;
+use crate::{network::SocketPlugin, DimensionPlugin, NetworkPlugins};
 
 /// A [`PluginGroup`] for creating a server.
 ///
@@ -58,10 +59,10 @@ use crate::dimension::DimensionPlugin;
 ///
 /// FrogLight-Server's plugins:
 /// - [`DimensionPlugin`]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ServerPlugins {
     /// The address the server will bind to.
-    pub socket: SocketAddr,
+    pub socket: Option<SocketAddr>,
 }
 
 impl ServerPlugins {
@@ -70,9 +71,33 @@ impl ServerPlugins {
 
     #[cfg(not(debug_assertions))]
     const LOG_FILTER: &'static str = "info";
-}
-impl Default for ServerPlugins {
-    fn default() -> Self { Self { socket: SocketAddr::from_str("127.0.0.1:25565").unwrap() } }
+
+    /// Create a new [`ServerPlugins`].
+    ///
+    /// The server will not bind to any address.
+    #[must_use]
+    pub const fn new() -> Self { Self { socket: None } }
+
+    /// Create a new [`ServerPlugins`] that listens on `127.0.0.1`.
+    #[must_use]
+    pub const fn localhost() -> Self { Self::from_socket(SocketPlugin::<V1_21_0>::LOCALHOST) }
+
+    /// Create a new [`ServerPlugins`] that listens on `0.0.0.0`.
+    #[must_use]
+    pub const fn public() -> Self { Self::from_socket(SocketPlugin::<V1_21_0>::PUBLIC) }
+
+    /// Create a new [`ServerPlugins`] that listens on the given socket.
+    #[must_use]
+    pub const fn from_socket(socket: SocketAddr) -> Self { Self { socket: Some(socket) } }
+
+    /// Set the [`SocketAddr`] for the server.
+    ///
+    /// This will listen on the given socket for incoming connections.
+    #[must_use]
+    pub const fn with_socket(mut self, socket: SocketAddr) -> Self {
+        self.socket = Some(socket);
+        self
+    }
 }
 
 impl PluginGroup for ServerPlugins {
@@ -90,13 +115,8 @@ impl PluginGroup for ServerPlugins {
         // Add the Dimension plugin.
         builder = builder.add(DimensionPlugin);
 
-        // Add the v1.21.0 `NetworkPlugins` and `NetworkExtPlugins`.
-        // builder = builder
-        //     .add_group(NetworkPlugins::<V1_21_0>::from_socket(self.socket))
-        //     .add_group(NetworkExtPlugins::<V1_21_0>::default());
-
-        // Add the `RegistryPlugins` and `WorldPlugins`.
-        // builder = builder.add_group(RegistryPlugins).add_group(WorldPlugins);
+        // Add the v1.21.0 `NetworkPlugins`.
+        builder = builder.add_group(NetworkPlugins::<V1_21_0>::from_option(self.socket));
 
         builder
     }

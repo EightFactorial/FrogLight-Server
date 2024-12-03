@@ -55,7 +55,7 @@ static UTIL_FIXED_SCHEDULES: LazyLock<[InternedScheduleLabel; 8]> = LazyLock::ne
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(ServerPlugins::default());
+    app.add_plugins(ServerPlugins::localhost());
     app.finish();
 
     graph_world(app.world_mut(), "Main");
