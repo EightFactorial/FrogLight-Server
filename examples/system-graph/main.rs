@@ -8,7 +8,7 @@ use std::{
 };
 
 use bevy::{
-    app::MainScheduleOrder,
+    app::{AppLabel, InternedAppLabel, MainScheduleOrder},
     ecs::schedule::{InternedScheduleLabel, ScheduleLabel},
     prelude::*,
 };
@@ -16,7 +16,13 @@ use bevy_mod_debugdump::schedule_graph::settings::{
     Settings as ScheduleSettings, Style as ScheduleStyle,
 };
 use froglight::prelude::*;
-use froglight_server::ServerPlugins;
+use froglight_server::{
+    dimension::{Nether, Overworld},
+    ServerPlugins,
+};
+
+static SUBAPPS: LazyLock<[InternedAppLabel; 2]> =
+    LazyLock::new(|| [Overworld.intern(), Nether.intern()]);
 
 /// Bevy's fixed [`bevy::app::main_schedule`].
 ///
@@ -52,52 +58,61 @@ fn main() {
     app.add_plugins(ServerPlugins::default());
     app.finish();
 
-    // Generate schedule graphs
-    graph_schedules(&mut app, "main", &[Main.intern()]);
-
-    let startup_labels = app.world().resource::<MainScheduleOrder>().startup_labels.clone();
-    graph_schedules(&mut app, "startup", &startup_labels);
-
-    let labels = app.world().resource::<MainScheduleOrder>().labels.clone();
-    graph_schedules(&mut app, "update", &labels);
-
-    graph_schedules(&mut app, "bevy_fixed", &*BEVY_FIXED_SCHEDULES);
-    graph_schedules(&mut app, "froglight_fixed", &*UTIL_FIXED_SCHEDULES);
+    graph_world(app.world_mut(), "Main");
+    for label in SUBAPPS.iter() {
+        let subapp = app.sub_app_mut(*label);
+        graph_world(subapp.world_mut(), &format!("{label:?}"));
+    }
 }
 
-/// Get the path to write the graphs to.
-fn graph_path(folder: &str) -> PathBuf {
-    // Get the path to write the graphs to
-    let mut path = PathBuf::from(file!());
+fn graph_world(world: &mut World, app: &str) {
+    // Generate schedule graphs
+    graph_schedules(world, app, "main", &[Main.intern()]);
 
-    path.pop();
-    path.push("graphs");
-    path.push(folder);
+    let startup_labels = world.resource::<MainScheduleOrder>().startup_labels.clone();
+    graph_schedules(world, app, "startup", &startup_labels);
 
-    if !path.exists() {
-        std::fs::create_dir_all(&path).expect("Failed to create directory");
-    }
+    let labels = world.resource::<MainScheduleOrder>().labels.clone();
+    graph_schedules(world, app, "update", &labels);
 
-    path
+    graph_schedules(world, app, "bevy_fixed", &*BEVY_FIXED_SCHEDULES);
+    graph_schedules(world, app, "froglight_fixed", &*UTIL_FIXED_SCHEDULES);
 }
 
 /// Generate graphs for the given schedules.
-fn graph_schedules(app: &mut App, folder: &str, schedules: &[InternedScheduleLabel]) {
+fn graph_schedules(
+    world: &mut World,
+    app: &str,
+    folder: &str,
+    schedules: &[InternedScheduleLabel],
+) {
     let settings = ScheduleSettings { style: ScheduleStyle::dark_github(), ..Default::default() };
 
     for label in schedules {
         // Skip schedules that don't exist
-        if !app.world().resource::<Schedules>().contains(label.intern()) {
-            warn!("Unable to find Schedule `{label:?}`!");
+        if !world.resource::<Schedules>().contains(*label) {
+            warn!("Skipping {app} graph for `{label:?}`, schedule does not exist");
             continue;
         }
 
         // Generate the graph
-        info!("Generating graph for `{label:?}`");
-        let graph = bevy_mod_debugdump::schedule_graph_dot(app, label.intern(), &settings);
+        info!("Generating {app} graph for `{label:?}`");
+        let graph = world.resource_scope::<Schedules, _>(|world, mut schedules| {
+            let ignored_ambiguities = schedules.ignored_scheduling_ambiguities.clone();
+
+            let schedule = schedules.get_mut(*label).unwrap();
+            schedule.graph_mut().initialize(world);
+            let _ = schedule.graph_mut().build_schedule(
+                world.components(),
+                ScheduleDebugGroup.intern(),
+                &ignored_ambiguities,
+            );
+
+            bevy_mod_debugdump::schedule_graph::schedule_graph_dot(schedule, world, &settings)
+        });
 
         // Write the graph to a file
-        write_dot_and_convert(graph, &format!("{label:?}"), &graph_path(folder));
+        write_dot_and_convert(graph, &format!("{label:?}"), &graph_path(app, folder));
     }
 }
 
@@ -127,9 +142,29 @@ fn write_dot_and_convert(graph: String, label: &str, path: &Path) {
     }
 }
 
+/// Get the path to write the graphs to.
+fn graph_path(subapp: &str, folder: &str) -> PathBuf {
+    // Get the path to write the graphs to
+    let mut path = PathBuf::from(file!());
+
+    path.pop();
+    path.push("graphs");
+    path.push(subapp);
+    path.push(folder);
+
+    if !path.exists() {
+        std::fs::create_dir_all(&path).expect("Failed to create directory");
+    }
+
+    path
+}
+
 /// Truncate the path to just the file name.
 fn truncate_path(path: &Path) -> &str {
     path.file_name()
         .and_then(|name| name.to_str())
         .unwrap_or_else(|| path.to_str().unwrap_or("unknown"))
 }
+
+#[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
+struct ScheduleDebugGroup;

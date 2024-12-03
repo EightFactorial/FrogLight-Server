@@ -73,13 +73,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 [lints]
 workspace = true
 
-[[bin]]
-name = "froglight-server"
-path = "src/bin/main.rs"
-
 [lib]
 name = "froglight_server"
 path = "src/lib/lib.rs"
+
+[[bin]]
+name = "froglight-server"
+path = "src/main.rs"
 
 [dev-dependencies]
 bevy_mod_debugdump = { workspace = true }
