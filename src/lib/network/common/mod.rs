@@ -6,6 +6,9 @@
 mod channel;
 pub use channel::{channel, AsyncPacketChannel, PacketChannel};
 
+mod component;
+pub use component::ComponentFilter;
+
 mod event;
 pub use event::{ConnectionStateEvent, PacketEvent};
 

@@ -70,9 +70,11 @@ where
     Login: State<V>,
 {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SocketFilter<V>>();
+        // Add events and initialize resources
         app.add_event::<ConnectionRequestEvent<V>>();
+        app.init_resource::<SocketFilter<V>>();
 
+        // Add systems
         app.add_systems(
             PreUpdate,
             ListenTask::<V>::receive_requests.run_if(any_with_component::<ListenTask<V>>),

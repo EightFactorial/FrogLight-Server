@@ -1,4 +1,5 @@
 //! TODO
+#![feature(build_hasher_default_const_new)]
 #![feature(const_type_id)]
 
 pub mod dimension;
