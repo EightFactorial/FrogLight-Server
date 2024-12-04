@@ -33,17 +33,18 @@ where
         app.init_resource::<PlayFilter<V>>();
 
         // Add dimension events and resources
-        app.add_dimension_event::<PlayPacketEvent<V>>(All);
+        app.add_dimension_event::<PlayClientPacketEvent<V>>(All);
+        app.add_dimension_event::<PlayServerPacketEvent<V>>(All);
         app.init_dimension_resource::<PlayRequiredComponents<V>>(All);
 
         // Add systems
         app.add_systems(
             PreUpdate,
-            PlayTask::<V>::queue_received_packets.run_if(any_with_component::<PlayTask<V>>),
+            PlayTask::<V>::app_queue_and_receive_packets.run_if(any_with_component::<PlayTask<V>>),
         );
         app.add_systems(
             Update,
-            PlayTask::<V>::complete_play_sessions.run_if(any_with_component::<PlayTask<V>>),
+            PlayTask::<V>::reconfigure_session.run_if(any_with_component::<PlayTask<V>>),
         );
         app.add_systems(
             PostUpdate,
@@ -59,6 +60,6 @@ where
         app.insert_resource(queue);
 
         // Add dimension systems
-        app.add_dimension_systems(All, Network, PlayTask::<V>::receive_queued_packets);
+        app.add_dimension_systems(All, Network, PlayTask::<V>::sub_queue_and_receive_packets);
     }
 }

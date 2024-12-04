@@ -30,6 +30,8 @@ impl<V: Version, S: State<V>> PacketChannel<V, S> {
     pub fn send(&self, packet: impl Into<SentPacket<V, S>>) {
         let _ = self.try_send(Arc::new(packet.into()));
     }
+    /// Send a packet to the other side of the channel.
+    pub fn send_arc(&self, packet: Arc<SentPacket<V, S>>) { let _ = self.try_send(packet); }
     /// Try to send a packet to the other side of the channel.
     ///
     /// # Errors

@@ -94,7 +94,7 @@ pub struct DimensionTracker(Entity);
 /// A component containing the
 /// linked entity in the main [`App`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deref, From, Component)]
-struct MainAppMarker(Entity);
+pub struct MainAppMarker(Entity);
 
 /// Extracts queued events from the [`DimensionEventQueue`]
 pub(super) fn extract(app: &mut World, sub_app: &mut World) {

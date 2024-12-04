@@ -19,6 +19,6 @@ where
         channel: AsyncPacketChannel<Self, Play>,
     ) -> impl Future<Output = Result<Connection<Self, Play, Clientbound>, ConnectionError>> + Send + Sync;
 
-    /// Send a finish packet to the client.
-    fn send_finish(task: &PlayTask<Self>);
+    /// Send a reconfigure packet to the client.
+    fn send_reconfigure(task: &PlayTask<Self>);
 }

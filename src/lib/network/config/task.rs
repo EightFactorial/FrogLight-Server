@@ -3,11 +3,12 @@ use froglight::{
     network::connection::NetworkDirection,
     prelude::{State, *},
 };
+use parking_lot::Mutex;
 
 use super::{
     CompletedConfig, ConfigPacketEvent, ConfigRequiredComponents, ConfigTask, ConfigTrait,
 };
-use crate::network::{common::channel, login::LoginStateEvent};
+use crate::network::{common::channel, config::ConfigStateEvent, login::LoginStateEvent};
 
 impl<V: Version + ConfigTrait> ConfigTask<V>
 where
@@ -82,13 +83,15 @@ where
     /// despawns them if they are done.
     pub fn poll_tasks(
         mut query: Query<(Entity, &GameProfile, &mut ConfigTask<V>)>,
+        mut events: EventWriter<ConfigStateEvent<V>>,
         mut commands: Commands,
     ) {
         for (entity, profile, mut task) in &mut query {
             match task.poll() {
-                Some(Ok(_conn)) => {
+                Some(Ok(conn)) => {
                     debug!("Configured {}", profile.name);
                     commands.entity(entity).remove::<ConfigTask<V>>();
+                    events.send(ConfigStateEvent { entity, connection: Mutex::new(Some(conn)) });
                 }
                 Some(Err(err)) => {
                     error!("Configuration failed for {}: {err}", profile.name);

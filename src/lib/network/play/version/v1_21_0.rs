@@ -56,5 +56,5 @@ impl PlayTrait for V1_21_0 {
         Ok(Connection::from_split(read, write).await)
     }
 
-    fn send_finish(task: &PlayTask<Self>) { task.send(EnterReconfigurationPacket); }
+    fn send_reconfigure(task: &PlayTask<Self>) { task.send(EnterReconfigurationPacket); }
 }
