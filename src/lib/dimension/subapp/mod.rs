@@ -26,9 +26,17 @@ pub(super) fn build(app: &mut App) {
 }
 
 /// An identifier inserted into the world for each dimension.
-#[derive(Debug, Deref, From, Resource)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deref, From, Resource)]
 pub struct DimensionIdentifier {
     dimension: InternedAppLabel,
+}
+impl DimensionIdentifier {
+    /// Returns the [`InternedAppLabel`] for the dimension.
+    #[must_use]
+    pub const fn label(&self) -> InternedAppLabel { self.dimension }
+}
+impl<T: DimensionType> From<T> for DimensionIdentifier {
+    fn from(_: T) -> Self { Self::from(T::default().intern()) }
 }
 
 /// For each registered [`Dimension`](ReflectDimension),

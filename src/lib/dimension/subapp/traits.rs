@@ -1,7 +1,7 @@
 use std::any::{Any, TypeId};
 
 use bevy::{
-    app::{AppLabel, Plugins},
+    app::{AppLabel, InternedAppLabel, Plugins},
     ecs::schedule::ScheduleLabel,
     prelude::*,
 };
@@ -32,11 +32,27 @@ pub trait DimensionApp {
     /// before all dimensions are registered.
     fn add_dimension(&mut self, dimension: impl DimensionType);
 
+    /// Runs a function on either all or one specific dimension.
+    ///
+    /// This is useful when you want to run a function on a dimension,
+    /// but it does not meet the requirements of any of the other trait methods.
+    fn in_dimension(&mut self, dimension: impl DimensionType, f: impl Fn(&mut SubApp));
+
+    /// Runs a function on all dimensions.
+    ///
+    /// This is useful when you want to run a function on all dimensions,
+    /// and want to know which dimension you are working with.
+    fn in_all_dimensions(&mut self, f: impl Fn(InternedAppLabel, &mut SubApp));
+
     /// Initializes a resource for a specific dimension.
     ///
     /// If the dimension is [`All`],
     /// the resource will be initialized for all dimensions.
-    fn init_dimension_resource<R: Resource + FromWorld>(&mut self, dimension: impl DimensionType);
+    fn init_dimension_resource<R: Resource + FromWorld>(&mut self, dimension: impl DimensionType) {
+        self.in_dimension(dimension, |sub_app| {
+            sub_app.init_resource::<R>();
+        });
+    }
 
     /// Inserts a resource into a specific dimension.
     ///
@@ -46,7 +62,11 @@ pub trait DimensionApp {
         &mut self,
         dimension: impl DimensionType,
         resource: R,
-    );
+    ) {
+        self.in_dimension(dimension, |sub_app| {
+            sub_app.insert_resource(resource.clone());
+        });
+    }
 
     /// Adds systems to specific dimensions.
     ///
@@ -57,13 +77,21 @@ pub trait DimensionApp {
         dimension: impl DimensionType,
         schedule: impl ScheduleLabel + Clone,
         systems: impl IntoSystemConfigs<M> + Copy,
-    );
+    ) {
+        self.in_dimension(dimension, |sub_app| {
+            sub_app.add_systems(schedule.clone(), systems);
+        });
+    }
 
     /// Adds an event to specific dimensions.
     ///
     /// If the dimension is [`All`],
     /// the event will be added to all dimensions.
-    fn add_dimension_event<E: Event>(&mut self, dimension: impl DimensionType);
+    fn add_dimension_event<E: Event>(&mut self, dimension: impl DimensionType) {
+        self.in_dimension(dimension, |sub_app| {
+            sub_app.add_event::<E>();
+        });
+    }
 
     /// Adds plugins to specific dimensions.
     ///
@@ -73,7 +101,11 @@ pub trait DimensionApp {
         &mut self,
         dimension: impl DimensionType,
         plugins: impl Plugins<M> + Clone,
-    );
+    ) {
+        self.in_dimension(dimension, |sub_app| {
+            sub_app.add_plugins(plugins.clone());
+        });
+    }
 }
 
 impl DimensionApp for App {
@@ -85,66 +117,25 @@ impl DimensionApp for App {
         self.insert_sub_app(dimension, sub_app);
     }
 
-    fn init_dimension_resource<R: Resource + FromWorld>(&mut self, dimension: impl DimensionType) {
-        add_to_dimensions(self, dimension, |sub_app| {
-            sub_app.init_resource::<R>();
-        });
+    fn in_dimension(&mut self, dimension: impl DimensionType, f: impl Fn(&mut SubApp)) {
+        if dimension.type_id() == TypeId::of::<All>() {
+            self.in_all_dimensions(|_, sub_app| f(sub_app));
+        } else {
+            f(self.sub_app_mut(dimension));
+        }
     }
 
-    fn insert_dimension_resource<R: Resource + Clone>(
-        &mut self,
-        dimension: impl DimensionType,
-        resource: R,
-    ) {
-        add_to_dimensions(self, dimension, |sub_app| {
-            sub_app.insert_resource(resource.clone());
-        });
-    }
-
-    fn add_dimension_systems<M>(
-        &mut self,
-        dimension: impl DimensionType,
-        schedule: impl ScheduleLabel + Clone,
-        systems: impl IntoSystemConfigs<M> + Copy,
-    ) {
-        add_to_dimensions(self, dimension, |sub_app| {
-            sub_app.add_systems(schedule.clone(), systems);
-        });
-    }
-
-    fn add_dimension_event<E: Event>(&mut self, dimension: impl DimensionType) {
-        add_to_dimensions(self, dimension, |sub_app| {
-            sub_app.add_event::<E>();
-        });
-    }
-
-    fn add_dimension_plugins<M>(
-        &mut self,
-        dimension: impl DimensionType,
-        plugins: impl Plugins<M> + Clone,
-    ) {
-        add_to_dimensions(self, dimension, |sub_app| {
-            sub_app.add_plugins(plugins.clone());
-        });
-    }
-}
-
-/// Runs a function on either all or one specific dimension.
-fn add_to_dimensions(app: &mut App, dimension: impl DimensionType, f: impl Fn(&mut SubApp)) {
-    if dimension.type_id() == TypeId::of::<All>() {
-        let dimensions: Vec<_> = app
+    fn in_all_dimensions(&mut self, f: impl Fn(InternedAppLabel, &mut SubApp)) {
+        let dimensions: Vec<_> = self
             .world()
             .resource::<AppTypeRegistry>()
-            .clone()
             .read()
             .iter_with_data::<ReflectDimension>()
             .filter_map(|(_, d)| d.app_label)
             .collect();
 
         for dimension in dimensions {
-            f(app.sub_app_mut(dimension));
+            f(dimension, self.sub_app_mut(dimension));
         }
-    } else {
-        f(app.sub_app_mut(dimension));
     }
 }

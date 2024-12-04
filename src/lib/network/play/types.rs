@@ -72,6 +72,12 @@ where
     }
 }
 
+/// A marker component that indicates that the play session should be
+/// reconfigured.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[component(storage = "SparseSet")]
+pub struct ShouldReconfigure;
+
 /// A marker component that indicates that the play session has been
 /// completed.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]

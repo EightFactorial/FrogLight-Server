@@ -10,3 +10,6 @@ pub use network::NetworkPlugins;
 
 pub mod plugin;
 pub use plugin::ServerPlugins;
+
+pub mod world;
+pub use world::WorldPlugin;

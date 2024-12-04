@@ -4,6 +4,7 @@ use bevy::{
     utils::HashMap,
 };
 use derive_more::derive::From;
+use froglight::prelude::GameProfile;
 
 use super::DimensionIdentifier;
 
@@ -30,16 +31,19 @@ impl std::fmt::Display for DimensionMarker {
 impl<A: AppLabel> From<A> for DimensionMarker {
     fn from(label: A) -> Self { Self(label.intern()) }
 }
+impl From<DimensionIdentifier> for DimensionMarker {
+    fn from(ident: DimensionIdentifier) -> Self { Self(ident.label()) }
+}
 
 #[derive(Debug, Default, Deref, DerefMut, Resource)]
 struct DimensionEventQueue {
     queues: HashMap<InternedAppLabel, Vec<DimensionSyncEvent>>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum DimensionSyncEvent {
     /// The [`App`] [`Entity`] to spawn in the [`SubApp`].
-    Add(Entity),
+    Add(Entity, GameProfile),
     /// The [`SubApp`] [`Entity`] to despawn.
     Remove(Entity),
 }
@@ -50,11 +54,14 @@ impl DimensionMarker {
     /// Adds a [`DimensionSyncEvent::Add`] event to the [`DimensionEventQueue`].
     fn on_add(
         trigger: Trigger<OnAdd, Self>,
-        query: Query<&DimensionMarker>,
+        query: Query<(&GameProfile, &DimensionMarker)>,
         mut queue: ResMut<DimensionEventQueue>,
     ) {
-        let marker = query.get(trigger.entity()).unwrap();
-        queue.entry(**marker).or_default().push(DimensionSyncEvent::Add(trigger.entity()));
+        let (profile, marker) = query.get(trigger.entity()).unwrap();
+        queue
+            .entry(**marker)
+            .or_default()
+            .push(DimensionSyncEvent::Add(trigger.entity(), profile.clone()));
     }
 
     /// The [`Observer`] for the [`OnRemove`] event.
@@ -74,7 +81,7 @@ impl DimensionMarker {
                 // Queue a despawn event
                 queue.entry(marker).or_default().push(DimensionSyncEvent::Remove(**tracker));
                 commands.entity(trigger.entity()).remove::<DimensionTracker>();
-            } else if let Some(position) = queue.get(&marker).and_then(|queue| queue.iter().position(|event| matches!(event, DimensionSyncEvent::Add(entity) if *entity == trigger.entity()))) {
+            } else if let Some(position) = queue.get(&marker).and_then(|queue| queue.iter().position(|event| matches!(event, DimensionSyncEvent::Add(entity, ..) if *entity == trigger.entity()))) {
                 // Find and remove the queued spawn event
                 queue.get_mut(&marker).unwrap().swap_remove(position);
             } else {
@@ -106,8 +113,8 @@ pub(super) fn extract(app: &mut World, sub_app: &mut World) {
 
             for event in queue.drain(..) {
                 match event {
-                    DimensionSyncEvent::Add(entity) => {
-                        let spawned = sub_app.spawn(MainAppMarker(entity));
+                    DimensionSyncEvent::Add(entity, profile) => {
+                        let spawned = sub_app.spawn((MainAppMarker(entity), profile));
                         app.entity_mut(entity).insert(DimensionTracker(spawned.id()));
 
                         #[cfg(debug_assertions)]

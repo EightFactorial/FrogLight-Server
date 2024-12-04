@@ -86,12 +86,14 @@ where
             for PlayServerPacketEvent { entity, packet } in queue.drain(..) {
                 if let Ok((_, _, task)) = query.get(entity) {
                     task.send_arc(packet);
+                } else {
+                    warn!("Received packet for non-existent connection!");
                 }
             }
         }
     }
 
-    /// A system that receives serverbound packets from the queue,
+    /// A [`SubApp`] system that receives serverbound packets from the queue,
     /// and sends clientbound packets to the queue.
     pub fn sub_queue_and_receive_packets(
         query: Query<&MainAppMarker>,
@@ -108,6 +110,8 @@ where
         for PlayServerPacketEvent { entity, packet } in server.read() {
             if let Ok(marker) = query.get(*entity) {
                 queue.push(PlayServerPacketEvent { entity: **marker, packet: packet.clone() });
+            } else {
+                warn!("Received packet for non-existent connection!");
             }
         }
     }

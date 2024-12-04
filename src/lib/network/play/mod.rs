@@ -3,7 +3,10 @@
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
-use froglight::{network::connection::NetworkDirection, prelude::*};
+use froglight::{
+    network::connection::NetworkDirection,
+    prelude::{entity::Player, *},
+};
 
 use crate::dimension::{All, DimensionApp, Network};
 
@@ -32,10 +35,14 @@ where
         app.add_event::<PlayStateEvent<V>>();
         app.init_resource::<PlayFilter<V>>();
 
+        // Initialize and add required components
+        let mut required = PlayRequiredComponents::<V>::new_empty();
+        required.add_required::<ShouldReconfigure>();
+        app.insert_resource(required);
+
         // Add dimension events and resources
         app.add_dimension_event::<PlayClientPacketEvent<V>>(All);
         app.add_dimension_event::<PlayServerPacketEvent<V>>(All);
-        app.init_dimension_resource::<PlayRequiredComponents<V>>(All);
 
         // Add systems
         app.add_systems(
@@ -60,6 +67,11 @@ where
         app.insert_resource(queue);
 
         // Add dimension systems
-        app.add_dimension_systems(All, Network, PlayTask::<V>::sub_queue_and_receive_packets);
+        app.in_dimension(All, |app| {
+            app.add_systems(
+                Network,
+                PlayTask::<V>::sub_queue_and_receive_packets.run_if(any_with_component::<Player>),
+            );
+        });
     }
 }
