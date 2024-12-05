@@ -114,8 +114,7 @@ impl KeepAliveCounter {
     /// Returns `true` if the value is valid.
     #[must_use]
     pub fn receive_keepalive(&mut self, value: u64) -> bool {
-        let diff = self.current.wrapping_sub(value);
-        if diff <= Self::VALUE_THRESHOLD {
+        if self.current.wrapping_sub(value) <= Self::VALUE_THRESHOLD {
             self.recv.set_elapsed(Duration::ZERO);
             true
         } else {

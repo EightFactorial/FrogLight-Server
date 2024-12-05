@@ -2,18 +2,29 @@ use bevy::{prelude::*, utils::HashMap};
 use derive_more::derive::Deref;
 
 use super::{
-    marker::SubAppTracker, All, DimensionApp, DimensionIdentifier, MainAppMarker, SubAppComponents,
+    marker::SubAppTracker, All, DimensionApp, DimensionIdentifier, DimensionMarker, MainAppMarker,
+    SubAppComponents,
 };
 
 #[doc(hidden)]
 pub(super) fn build(app: &mut App) {
-    app.add_dimension_event::<MainAppEvent>(All);
     app.init_resource::<SubAppEventQueue>();
+    app.init_resource::<SubAppTransferQueue>();
+
+    app.add_dimension_event::<MainAppEvent>(All);
 }
 
 /// An [`Event`] to execute in the main [`App`].
 #[derive(Debug, Event)]
 pub enum MainAppEvent {
+    /// Change the associated [`SubApp`] of a main [`App`] entity.
+    ///
+    /// Must only be used on linked entities with a [`MainAppMarker`].
+    ChangeWorld(MainAppMarker, DimensionIdentifier),
+    /// Transfer an entity from one [`SubApp`] to another.
+    ///
+    /// Must only be used on non-linked entities.
+    TransferWorld(Entity, DimensionIdentifier),
     /// Insert a [`Component`] into a main [`App`] entity.
     InsertComponent(MainAppMarker, Box<dyn PartialReflect>),
 }
@@ -35,9 +46,10 @@ pub enum SubAppEvent {
 }
 
 pub(super) fn extract(app: &mut World, sub_app: &mut World) {
-    // Execute all `SubAppEvents` for this SubApp's `DimensionIdentifier`
     app.resource_scope::<SubAppEventQueue, _>(|app, mut queue| {
         let identifier = *sub_app.resource::<DimensionIdentifier>();
+
+        // Execute all `SubAppEvents` for this SubApp's `DimensionIdentifier`
         for event in queue.entry(identifier).or_default().drain(..) {
             match event {
                 SubAppEvent::SpawnLinked(marker) => {
@@ -67,12 +79,34 @@ pub(super) fn extract(app: &mut World, sub_app: &mut World) {
                 }
             }
         }
+
+        // Process the `SubAppTransferQueue` for this SubApp's `DimensionIdentifier`.
+        for components in
+            app.resource_mut::<SubAppTransferQueue>().entry(identifier).or_default().drain(..)
+        {
+            components.write_to(&mut sub_app.spawn_empty());
+        }
     });
 
     // Execute all `MainAppEvents` from the SubApp.
     sub_app.resource_scope::<Events<MainAppEvent>, _>(|sub_app, mut events| {
         for event in events.drain() {
             match event {
+                MainAppEvent::ChangeWorld(marker, identifier) => {
+                    if let Ok(mut entity) = app.get_entity_mut(*marker) {
+                        entity
+                            .remove::<DimensionMarker>()
+                            .insert(DimensionMarker::from(identifier));
+                    }
+                }
+                MainAppEvent::TransferWorld(entity, identifier) => {
+                    if let Ok(entity) = sub_app.get_entity_mut(entity) {
+                        app.resource_mut::<SubAppTransferQueue>()
+                            .entry(identifier)
+                            .or_default()
+                            .push(SubAppComponents::read_from(entity.id(), sub_app));
+                    }
+                }
                 MainAppEvent::InsertComponent(marker, component) => {
                     if let Ok(mut entity) = app.get_entity_mut(*marker) {
                         // Get the `AppTypeRegistry`.
@@ -101,4 +135,10 @@ pub(super) fn extract(app: &mut World, sub_app: &mut World) {
             }
         }
     });
+}
+
+/// A queue of [`SubAppComponents`] to transfer across [`SubApp`]s,
+#[derive(Debug, Default, Deref, DerefMut, Resource)]
+struct SubAppTransferQueue {
+    queue: HashMap<DimensionIdentifier, Vec<SubAppComponents>>,
 }

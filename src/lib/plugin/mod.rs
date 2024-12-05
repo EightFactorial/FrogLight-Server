@@ -14,7 +14,11 @@ use bevy::{
 
 mod taskpool;
 use compact_str::CompactString;
-use froglight::network::{versions::v1_21_0::V1_21_0, ResolverPlugin};
+use froglight::{
+    network::{versions::v1_21_0::V1_21_0, ResolverPlugin},
+    prelude::plugins::EntityPlugin,
+    registry::RegistryPlugin,
+};
 pub use taskpool::TASKPOOL_SETTINGS;
 
 use crate::{
@@ -156,8 +160,8 @@ impl PluginGroup for ServerPlugins {
         let mut builder = PluginGroupBuilder::start::<Self>();
         builder = builder.add_group(DefaultPlugins);
 
-        // Add FrogLight's `ResolverPlugin`.
-        builder = builder.add(ResolverPlugin::default());
+        // Add FrogLight's `EntityPlugin`, `RegistryPlugin`, and `ResolverPlugin`.
+        builder = builder.add(EntityPlugin).add(RegistryPlugin).add(ResolverPlugin::default());
 
         // Configure the `LogPlugin`.
         builder = builder
