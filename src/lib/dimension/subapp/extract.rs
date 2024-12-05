@@ -24,7 +24,7 @@ pub enum MainAppEvent {
     /// Transfer an entity from one [`SubApp`] to another.
     ///
     /// Must only be used on non-linked entities.
-    TransferWorld(Entity, DimensionIdentifier),
+    TransferEntity(Entity, DimensionIdentifier),
     /// Insert a [`Component`] into a main [`App`] entity.
     InsertComponent(MainAppMarker, Box<dyn PartialReflect>),
 }
@@ -99,7 +99,7 @@ pub(super) fn extract(app: &mut World, sub_app: &mut World) {
                             .insert(DimensionMarker::from(identifier));
                     }
                 }
-                MainAppEvent::TransferWorld(entity, identifier) => {
+                MainAppEvent::TransferEntity(entity, identifier) => {
                     if let Ok(entity) = sub_app.get_entity_mut(entity) {
                         app.resource_mut::<SubAppTransferQueue>()
                             .entry(identifier)
