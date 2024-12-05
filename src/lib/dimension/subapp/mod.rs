@@ -7,8 +7,11 @@ use bevy::{
 };
 use derive_more::derive::From;
 
+mod component;
+pub use component::SubAppComponents;
+
 mod extract;
-pub use extract::{DimensionMarker, DimensionTracker, MainAppMarker};
+pub use extract::{MainAppEvent, SubAppEvent, SubAppEventQueue};
 
 mod schedule;
 pub use schedule::Network;
@@ -18,11 +21,15 @@ pub use traits::{All, DimensionApp, DimensionType};
 
 use super::ReflectDimension;
 
+mod marker;
+pub use marker::{DimensionMarker, MainAppMarker, SubAppTracker};
+
 #[doc(hidden)]
 pub(super) fn build(app: &mut App) {
-    extract::build(app);
-
     build_dimension_subapps(app);
+
+    extract::build(app);
+    marker::build(app);
 }
 
 /// An identifier inserted into the world for each dimension.

@@ -6,7 +6,7 @@ use super::{
     PlayServerPacketEvent, PlayTask, PlayTrait,
 };
 use crate::{
-    dimension::subapp::{DimensionIdentifier, DimensionMarker, DimensionTracker, MainAppMarker},
+    dimension::subapp::{DimensionIdentifier, DimensionMarker, MainAppMarker, SubAppTracker},
     network::{common::channel, config::ConfigStateEvent},
 };
 
@@ -65,16 +65,20 @@ where
     /// A system that receives serverbound packets from play tasks,
     /// and receives clientbound packets from the queue.
     pub fn app_queue_and_receive_packets(
-        query: Query<(&DimensionMarker, &DimensionTracker, &PlayTask<V>)>,
+        query: Query<(Entity, &DimensionMarker, &SubAppTracker, &PlayTask<V>)>,
         queue: ResMut<PlayPacketEventQueue<V>>,
+        mut events: EventWriter<PlayClientPacketEvent<V>>,
     ) {
         {
             // Receive clientbound packets
             let mut queue = queue.client.lock();
-            for (marker, tracker, task) in &query {
+            for (entity, marker, tracker, task) in &query {
                 while let Some(packet) = task.recv() {
+                    // Send the event in the main App
+                    events.send(PlayClientPacketEvent::new(entity, packet.clone()));
+                    // Send the packet to the SubApp queue
                     queue
-                        .entry(**marker)
+                        .entry(***marker)
                         .or_default()
                         .push(PlayClientPacketEvent::new(**tracker, packet));
                 }
@@ -82,13 +86,11 @@ where
         }
         {
             // Send serverbound packets
-            let mut queue = queue.server.lock();
-            for PlayServerPacketEvent { entity, packet } in queue.drain(..) {
-                if let Ok((_, _, task)) = query.get(entity) {
-                    task.send_arc(packet);
-                } else {
-                    warn!("Received packet for non-existent connection!");
-                }
+            for PlayServerPacketEvent { entity, packet } in queue.server.lock().drain(..) {
+                query.get(entity).map_or_else(
+                    |_| warn!("Received packet for non-existent connection!"),
+                    |(_, _, _, task)| task.send_arc(packet),
+                );
             }
         }
     }
@@ -106,14 +108,19 @@ where
         client.send_batch(queue.client.lock().entry(**label).or_default().drain(..));
 
         // Send clientbound packets
-        let mut queue = queue.server.lock();
-        for PlayServerPacketEvent { entity, packet } in server.read() {
-            if let Ok(marker) = query.get(*entity) {
-                queue.push(PlayServerPacketEvent { entity: **marker, packet: packet.clone() });
-            } else {
-                warn!("Received packet for non-existent connection!");
-            }
-        }
+        queue.server.lock().extend(server.read().filter_map(
+            |PlayServerPacketEvent { entity, packet }| {
+                query.get(*entity).map_or_else(
+                    |_| {
+                        warn!("Received packet for non-existent connection!");
+                        None
+                    },
+                    |marker| {
+                        Some(PlayServerPacketEvent { entity: **marker, packet: packet.clone() })
+                    },
+                )
+            },
+        ));
     }
 
     /// A system that polls all play tasks and

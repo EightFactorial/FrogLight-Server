@@ -33,6 +33,7 @@ where
     fn build(&self, app: &mut App) {
         // Add events and initialize resources
         app.add_event::<PlayStateEvent<V>>();
+        app.add_event::<PlayClientPacketEvent<V>>();
         app.init_resource::<PlayFilter<V>>();
 
         // Initialize and add required components
@@ -47,18 +48,23 @@ where
         // Add systems
         app.add_systems(
             PreUpdate,
-            PlayTask::<V>::app_queue_and_receive_packets.run_if(any_with_component::<PlayTask<V>>),
+            PlayTask::<V>::app_queue_and_receive_packets
+                .run_if(any_with_component::<PlayTask<V>>)
+                .ambiguous_with_all(),
         );
         app.add_systems(
             Update,
-            PlayTask::<V>::reconfigure_session.run_if(any_with_component::<PlayTask<V>>),
+            PlayTask::<V>::reconfigure_session
+                .run_if(any_with_component::<PlayTask<V>>)
+                .ambiguous_with_all(),
         );
         app.add_systems(
             PostUpdate,
             (
                 PlayTask::<V>::receive_configured.run_if(on_event::<ConfigStateEvent<V>>),
                 PlayTask::<V>::poll_tasks.run_if(any_with_component::<PlayTask<V>>),
-            ),
+            )
+                .ambiguous_with_all(),
         );
 
         // Initialize and insert the shared event queue
@@ -70,7 +76,9 @@ where
         app.in_dimension(All, |app| {
             app.add_systems(
                 Network,
-                PlayTask::<V>::sub_queue_and_receive_packets.run_if(any_with_component::<Player>),
+                PlayTask::<V>::sub_queue_and_receive_packets
+                    .run_if(any_with_component::<Player>)
+                    .ambiguous_with_all(),
             );
         });
     }

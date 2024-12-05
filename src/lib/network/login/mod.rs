@@ -77,18 +77,23 @@ where
         // Add systems
         app.add_systems(
             PreUpdate,
-            LoginTask::<V>::receive_packets.run_if(any_with_component::<LoginTask<V>>),
+            LoginTask::<V>::receive_packets
+                .run_if(any_with_component::<LoginTask<V>>)
+                .ambiguous_with_all(),
         );
         app.add_systems(
             Update,
-            LoginTask::<V>::complete_logins.run_if(any_with_component::<LoginTask<V>>),
+            LoginTask::<V>::complete_logins
+                .run_if(any_with_component::<LoginTask<V>>)
+                .ambiguous_with_all(),
         );
         app.add_systems(
             PostUpdate,
             (
                 LoginTask::<V>::receive_requests.run_if(on_event::<ConnectionRequestEvent<V>>),
                 LoginTask::<V>::poll_tasks.run_if(any_with_component::<LoginTask<V>>),
-            ),
+            )
+                .ambiguous_with_all(),
         );
     }
 }

@@ -19,7 +19,7 @@ pub use taskpool::TASKPOOL_SETTINGS;
 
 use crate::{
     network::{LoginPlugin, SocketPlugin},
-    DimensionPlugin, NetworkPlugins, WorldPlugin,
+    DimensionPlugin, NetworkPlugins, PlayerPlugins,
 };
 
 /// A [`PluginGroup`] for creating a server.
@@ -171,8 +171,8 @@ impl PluginGroup for ServerPlugins {
 
         // Add the v1.21.0 `NetworkPlugins`.
         builder = builder.add_group(NetworkPlugins::<V1_21_0>::from_option(self.socket));
-        // Add the v1.21.0 `WorldPlugin`.
-        builder = builder.add(WorldPlugin::<V1_21_0>::default());
+        // Add the v1.21.0 `PlayerPlugins`.
+        builder = builder.add_group(PlayerPlugins::<V1_21_0>::default());
 
         builder
     }

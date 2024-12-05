@@ -8,8 +8,8 @@ pub use dimension::DimensionPlugin;
 pub mod network;
 pub use network::NetworkPlugins;
 
+pub mod player;
+pub use player::PlayerPlugins;
+
 pub mod plugin;
 pub use plugin::ServerPlugins;
-
-pub mod world;
-pub use world::WorldPlugin;

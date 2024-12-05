@@ -1,133 +1,104 @@
-use bevy::{
-    app::{AppLabel, InternedAppLabel},
-    prelude::*,
-    utils::HashMap,
+use bevy::{prelude::*, utils::HashMap};
+use derive_more::derive::Deref;
+
+use super::{
+    marker::SubAppTracker, All, DimensionApp, DimensionIdentifier, MainAppMarker, SubAppComponents,
 };
-use derive_more::derive::From;
-use froglight::prelude::GameProfile;
 
-use super::DimensionIdentifier;
-
+#[doc(hidden)]
 pub(super) fn build(app: &mut App) {
-    app.init_resource::<DimensionEventQueue>();
-    app.add_observer(DimensionMarker::on_add);
-    app.add_observer(DimensionMarker::on_remove);
+    app.add_dimension_event::<MainAppEvent>(All);
+    app.init_resource::<SubAppEventQueue>();
 }
 
-/// A marker component for entities that belong to a dimension.
-///
-/// Adding this component will cause a linked entity
-/// to be spawned in the dimension's [`SubApp`].
-#[derive(Debug, Deref, Component)]
-pub struct DimensionMarker(InternedAppLabel);
-impl DimensionMarker {
-    /// Create a new [`DimensionMarker`] from an [`AppLabel`].
-    #[must_use]
-    pub fn new(label: impl AppLabel) -> Self { Self(label.intern()) }
-}
-impl std::fmt::Display for DimensionMarker {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result { write!(f, "{:?}", self.0) }
-}
-impl<A: AppLabel> From<A> for DimensionMarker {
-    fn from(label: A) -> Self { Self(label.intern()) }
-}
-impl From<DimensionIdentifier> for DimensionMarker {
-    fn from(ident: DimensionIdentifier) -> Self { Self(ident.label()) }
+/// An [`Event`] to execute in the main [`App`].
+#[derive(Debug, Event)]
+pub enum MainAppEvent {
+    /// Insert a [`Component`] into a main [`App`] entity.
+    InsertComponent(MainAppMarker, Box<dyn PartialReflect>),
 }
 
+/// A queue of [`SubAppEvent`]s to execute,
+/// indexed by [`DimensionIdentifier`].
 #[derive(Debug, Default, Deref, DerefMut, Resource)]
-struct DimensionEventQueue {
-    queues: HashMap<InternedAppLabel, Vec<DimensionSyncEvent>>,
+pub struct SubAppEventQueue {
+    queue: HashMap<DimensionIdentifier, Vec<SubAppEvent>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum DimensionSyncEvent {
-    /// The [`App`] [`Entity`] to spawn in the [`SubApp`].
-    Add(Entity, GameProfile),
-    /// The [`SubApp`] [`Entity`] to despawn.
-    Remove(Entity),
+/// An [`Event`] to execute in a [`SubApp`].
+#[derive(Debug)]
+pub enum SubAppEvent {
+    /// Spawn a linked entity in the [`SubApp`].
+    SpawnLinked(MainAppMarker),
+    /// Despawn a linked entity in the [`SubApp`].
+    DespawnLinked(SubAppTracker),
 }
 
-impl DimensionMarker {
-    /// The [`Observer`] for the [`OnAdd`] event.
-    ///
-    /// Adds a [`DimensionSyncEvent::Add`] event to the [`DimensionEventQueue`].
-    fn on_add(
-        trigger: Trigger<OnAdd, Self>,
-        query: Query<(&GameProfile, &DimensionMarker)>,
-        mut queue: ResMut<DimensionEventQueue>,
-    ) {
-        let (profile, marker) = query.get(trigger.entity()).unwrap();
-        queue
-            .entry(**marker)
-            .or_default()
-            .push(DimensionSyncEvent::Add(trigger.entity(), profile.clone()));
-    }
-
-    /// The [`Observer`] for the [`OnRemove`] event.
-    ///
-    /// Adds a [`DimensionSyncEvent::Remove`] event to the
-    /// [`DimensionEventQueue`], or for an in-progress event,
-    /// removes the queued [`DimensionSyncEvent::Add`] event.
-    fn on_remove(
-        trigger: Trigger<OnRemove, Self>,
-        query: Query<(&DimensionMarker, Option<&DimensionTracker>)>,
-        mut queue: ResMut<DimensionEventQueue>,
-        mut commands: Commands,
-    ) {
-        if let Ok((marker, tracker)) = query.get(trigger.entity()) {
-            let marker = **marker;
-            if let Some(tracker) = tracker {
-                // Queue a despawn event
-                queue.entry(marker).or_default().push(DimensionSyncEvent::Remove(**tracker));
-                commands.entity(trigger.entity()).remove::<DimensionTracker>();
-            } else if let Some(position) = queue.get(&marker).and_then(|queue| queue.iter().position(|event| matches!(event, DimensionSyncEvent::Add(entity, ..) if *entity == trigger.entity()))) {
-                // Find and remove the queued spawn event
-                queue.get_mut(&marker).unwrap().swap_remove(position);
-            } else {
-                error!("Failed to remove DimensionMarker: No tracked entity or queued event found");
-            }
-        } else {
-            error!("Failed to remove DimensionMarker: Components not found");
-        }
-    }
-}
-
-/// A component containing the
-/// linked entity in a dimension's [`SubApp`].
-#[derive(Debug, Deref, Component)]
-pub struct DimensionTracker(Entity);
-
-/// A component containing the
-/// linked entity in the main [`App`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deref, From, Component)]
-pub struct MainAppMarker(Entity);
-
-/// Extracts queued events from the [`DimensionEventQueue`]
 pub(super) fn extract(app: &mut World, sub_app: &mut World) {
-    sub_app.resource_scope::<DimensionIdentifier, _>(|sub_app, ident| {
-        app.resource_scope::<DimensionEventQueue, _>(|app, mut event_queue| {
-            let Some(queue) = event_queue.get_mut(&**ident) else {
-                return;
-            };
+    // Execute all `SubAppEvents` for this SubApp's `DimensionIdentifier`
+    app.resource_scope::<SubAppEventQueue, _>(|app, mut queue| {
+        let identifier = *sub_app.resource::<DimensionIdentifier>();
+        for event in queue.entry(identifier).or_default().drain(..) {
+            match event {
+                SubAppEvent::SpawnLinked(marker) => {
+                    // Spawn an Entity in the SubApp.
+                    let mut entity = sub_app.spawn(marker);
 
-            for event in queue.drain(..) {
-                match event {
-                    DimensionSyncEvent::Add(entity, profile) => {
-                        let spawned = sub_app.spawn((MainAppMarker(entity), profile));
-                        app.entity_mut(entity).insert(DimensionTracker(spawned.id()));
-
-                        #[cfg(debug_assertions)]
-                        trace!("App Entity {entity} linked to SubApp Entity {}", spawned.id());
+                    // Take any `SubAppComponents` from the Entity in the main App.
+                    if let Some(components) = app.entity_mut(*marker).take::<SubAppComponents>() {
+                        components.write_to(&mut entity);
                     }
-                    DimensionSyncEvent::Remove(entity) => {
-                        sub_app.despawn(entity);
 
-                        #[cfg(debug_assertions)]
-                        trace!("Despawning SubApp Entity {entity}");
+                    // Add a `SubAppTracker` to the Entity in the main App.
+                    app.entity_mut(*marker).insert(SubAppTracker(entity.id()));
+                }
+                SubAppEvent::DespawnLinked(tracker) => {
+                    // If the Entity exists in the main App, collect its `SubAppComponents`.
+                    if let Some(mut entity) = sub_app
+                        .get::<MainAppMarker>(*tracker)
+                        .and_then(|marker| app.get_entity_mut(**marker).ok())
+                    {
+                        sub_app.entity_mut(*tracker).remove::<MainAppMarker>();
+                        entity.insert(SubAppComponents::read_from(*tracker, sub_app));
+                    }
+
+                    // Despawn the Entity in the SubApp.
+                    sub_app.entity_mut(*tracker).despawn_recursive();
+                }
+            }
+        }
+    });
+
+    // Execute all `MainAppEvents` from the SubApp.
+    sub_app.resource_scope::<Events<MainAppEvent>, _>(|sub_app, mut events| {
+        for event in events.drain() {
+            match event {
+                MainAppEvent::InsertComponent(marker, component) => {
+                    if let Ok(mut entity) = app.get_entity_mut(*marker) {
+                        // Get the `AppTypeRegistry`.
+                        let registry = sub_app.resource::<AppTypeRegistry>().read();
+
+                        // Get the `ReflectComponent` for the component.
+                        if let Some(reflect) =
+                            component.get_represented_type_info().and_then(|info| {
+                                registry.get_type_data::<ReflectComponent>(info.type_id())
+                            })
+                        {
+                            // Apply or insert the component into the entity.
+                            reflect.apply_or_insert(
+                                &mut entity,
+                                component.as_partial_reflect(),
+                                &registry,
+                            );
+                        } else {
+                            warn!(
+                                "Failed to get ReflectComponent for type: {}",
+                                component.reflect_short_type_path()
+                            );
+                        }
                     }
                 }
             }
-        });
+        }
     });
 }

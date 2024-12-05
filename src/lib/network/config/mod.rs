@@ -43,18 +43,23 @@ where
         // Add systems
         app.add_systems(
             PreUpdate,
-            ConfigTask::<V>::receive_packets.run_if(any_with_component::<ConfigTask<V>>),
+            ConfigTask::<V>::receive_packets
+                .run_if(any_with_component::<ConfigTask<V>>)
+                .ambiguous_with_all(),
         );
         app.add_systems(
             Update,
-            ConfigTask::<V>::complete_configurations.run_if(any_with_component::<ConfigTask<V>>),
+            ConfigTask::<V>::complete_configurations
+                .run_if(any_with_component::<ConfigTask<V>>)
+                .ambiguous_with_all(),
         );
         app.add_systems(
             PostUpdate,
             (
                 ConfigTask::<V>::receive_logins.run_if(on_event::<LoginStateEvent<V>>),
                 ConfigTask::<V>::poll_tasks.run_if(any_with_component::<ConfigTask<V>>),
-            ),
+            )
+                .ambiguous_with_all(),
         );
     }
 }

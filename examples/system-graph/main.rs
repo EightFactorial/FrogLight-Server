@@ -131,14 +131,28 @@ fn write_dot_and_convert(graph: String, label: &str, path: &Path) {
     let output_path = path.with_extension("svg");
     debug!("Converting \"{}\" to \"{}\"", truncate_path(&path), truncate_path(&output_path));
 
-    if let Err(err) = std::process::Command::new("dot")
+    match std::process::Command::new("dot")
         .arg("-Tsvg")
         .arg(&path)
         .arg("-o")
         .arg(&output_path)
         .output()
     {
-        error!("Failed to convert \"{}\" to \"{}\": {err}", path.display(), output_path.display());
+        Ok(output) => {
+            if !output.status.success() {
+                error!(
+                    "Failed to convert \"{}\" to \"{}\":\n{}",
+                    path.display(),
+                    output_path.display(),
+                    String::from_utf8_lossy(&output.stderr)
+                );
+            }
+        }
+        Err(err) => error!(
+            "Failed to convert \"{}\" to \"{}\": {err}",
+            path.display(),
+            output_path.display()
+        ),
     }
 }
 

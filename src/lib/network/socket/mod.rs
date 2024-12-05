@@ -77,11 +77,15 @@ where
         // Add systems
         app.add_systems(
             PreUpdate,
-            ListenTask::<V>::receive_requests.run_if(any_with_component::<ListenTask<V>>),
+            ListenTask::<V>::receive_requests
+                .run_if(any_with_component::<ListenTask<V>>)
+                .ambiguous_with_all(),
         );
         app.add_systems(
             PostUpdate,
-            ListenTask::<V>::poll_tasks.run_if(any_with_component::<ListenTask<V>>),
+            ListenTask::<V>::poll_tasks
+                .run_if(any_with_component::<ListenTask<V>>)
+                .ambiguous_with_all(),
         );
     }
 
