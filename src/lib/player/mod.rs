@@ -11,6 +11,9 @@ use initialize::PlayerInitializePlugin;
 pub mod keepalive;
 use keepalive::KeepAlivePlugin;
 
+pub mod movement;
+// use movement::PlayerMovementPlugin;
+
 pub mod profile;
 use profile::PlayerProfileSyncPlugin;
 

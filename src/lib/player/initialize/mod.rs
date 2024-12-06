@@ -8,7 +8,7 @@ use froglight::{network::connection::NetworkDirection, prelude::*};
 mod version;
 pub use version::InitializeTrait;
 
-use crate::dimension::{subapp::MainAppMarker, All, DimensionApp};
+use crate::dimension::{subapp::MainAppMarker, All, DimensionApp, Network};
 
 /// A [`Plugin`] that initializes player connections.
 #[derive(Debug, Default)]
@@ -24,8 +24,10 @@ where
 
         app.in_dimension(All, |app| {
             app.add_systems(
-                PreUpdate,
-                initialize_player_connection::<V>.run_if(any_with_component::<MainAppMarker>),
+                Network,
+                initialize_player_connection::<V>
+                    .run_if(any_with_component::<MainAppMarker>)
+                    .ambiguous_with_all(),
             );
         });
     }

@@ -26,6 +26,9 @@ use crate::{
     DimensionPlugin, EntityPlugins, NetworkPlugins, PlayerPlugins, WorldPlugins,
 };
 
+mod ready;
+use ready::ReadyPlugin;
+
 /// A [`PluginGroup`] for creating a server.
 ///
 /// Contains all the plugins required to run a server.
@@ -165,7 +168,7 @@ impl Default for ServerPlugins {
 
 impl PluginGroup for ServerPlugins {
     fn build(self) -> PluginGroupBuilder {
-        let mut builder = PluginGroupBuilder::start::<Self>();
+        let mut builder = PluginGroupBuilder::start::<Self>().add(ReadyPlugin);
         builder = builder.add_group(DefaultPlugins);
 
         // Add FrogLight's `EntityPlugin`, `RegistryPlugin`, and `ResolverPlugin`.

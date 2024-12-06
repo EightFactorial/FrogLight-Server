@@ -44,7 +44,10 @@ impl FromWorld for DimensionList {
             registry.iter_with_data::<ReflectDimension>().map(|(_, d)| d.clone()).collect();
         list.sort_by(|a, b| a.dimension_id.cmp(&b.dimension_id));
 
-        let labels: Vec<_> = list.iter().filter_map(|d| d.app_label).collect();
+        let labels: Vec<_> = list
+            .iter()
+            .map(|d| d.app_label.expect("Registered Dimension has no AppLabel!"))
+            .collect();
 
         Self { list, labels }
     }
