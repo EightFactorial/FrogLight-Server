@@ -43,9 +43,71 @@ pub enum SubAppEvent {
     SpawnLinked(MainAppMarker),
     /// Despawn a linked entity in the [`SubApp`].
     DespawnLinked(SubAppTracker),
+    /// Insert a [`Component`] into a [`SubApp`] entity.
+    InsertComponent(SubAppTracker, Box<dyn PartialReflect>),
 }
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn extract(app: &mut World, sub_app: &mut World) {
+    // Process events from the SubApp.
+    sub_app.resource_scope::<Events<MainAppEvent>, _>(|sub_app, mut events| {
+        // Execute all `MainAppEvents` from the SubApp.
+        for event in events.drain() {
+            match event {
+                MainAppEvent::ChangeWorld(marker, identifier) => {
+                    if let Ok(mut entity) = app.get_entity_mut(*marker) {
+                        entity
+                            .remove::<DimensionMarker>()
+                            .insert(DimensionMarker::from(identifier));
+                    } else {
+                        warn!("Failed to change world: Entity not found");
+                    }
+                }
+                MainAppEvent::TransferEntity(entity, identifier) => {
+                    if let Ok(entity) = sub_app.get_entity_mut(entity) {
+                        app.resource_mut::<SubAppTransferQueue>()
+                            .entry(identifier)
+                            .or_default()
+                            .push(SubAppComponents::read_from(entity.id(), sub_app));
+                    } else {
+                        warn!("Failed to transfer entity: Entity not found");
+                    }
+                }
+                MainAppEvent::InsertComponent(marker, component) => {
+                    if let Ok(mut entity) = app.get_entity_mut(*marker) {
+                        // Get the `AppTypeRegistry`.
+                        let registry = sub_app.resource::<AppTypeRegistry>().read();
+
+                        // Get the `ReflectComponent` for the component.
+                        if let Some(reflect) =
+                            component.get_represented_type_info().and_then(|info| {
+                                registry.get_type_data::<ReflectComponent>(info.type_id())
+                            })
+                        {
+                            // Apply or insert the component into the entity.
+                            reflect.apply_or_insert(
+                                &mut entity,
+                                component.as_partial_reflect(),
+                                &registry,
+                            );
+                        } else {
+                            warn!(
+                                "Failed to get ReflectComponent for type: {}",
+                                component.reflect_short_type_path()
+                            );
+                        }
+                    } else {
+                        warn!(
+                            "Failed to insert \"{}\": Entity not found",
+                            component.reflect_short_type_path()
+                        );
+                    }
+                }
+            }
+        }
+    });
+
+    // Process events from the main App.
     app.resource_scope::<SubAppEventQueue, _>(|app, mut queue| {
         let identifier = *sub_app.resource::<DimensionIdentifier>();
 
@@ -77,40 +139,10 @@ pub(super) fn extract(app: &mut World, sub_app: &mut World) {
                     // Despawn the Entity in the SubApp.
                     sub_app.entity_mut(*tracker).despawn_recursive();
                 }
-            }
-        }
-
-        // Process the `SubAppTransferQueue` for this SubApp's `DimensionIdentifier`.
-        for components in
-            app.resource_mut::<SubAppTransferQueue>().entry(identifier).or_default().drain(..)
-        {
-            components.write_to(&mut sub_app.spawn_empty());
-        }
-    });
-
-    // Execute all `MainAppEvents` from the SubApp.
-    sub_app.resource_scope::<Events<MainAppEvent>, _>(|sub_app, mut events| {
-        for event in events.drain() {
-            match event {
-                MainAppEvent::ChangeWorld(marker, identifier) => {
-                    if let Ok(mut entity) = app.get_entity_mut(*marker) {
-                        entity
-                            .remove::<DimensionMarker>()
-                            .insert(DimensionMarker::from(identifier));
-                    }
-                }
-                MainAppEvent::TransferEntity(entity, identifier) => {
-                    if let Ok(entity) = sub_app.get_entity_mut(entity) {
-                        app.resource_mut::<SubAppTransferQueue>()
-                            .entry(identifier)
-                            .or_default()
-                            .push(SubAppComponents::read_from(entity.id(), sub_app));
-                    }
-                }
-                MainAppEvent::InsertComponent(marker, component) => {
-                    if let Ok(mut entity) = app.get_entity_mut(*marker) {
+                SubAppEvent::InsertComponent(tracker, component) => {
+                    if let Ok(mut entity) = sub_app.get_entity_mut(*tracker) {
                         // Get the `AppTypeRegistry`.
-                        let registry = sub_app.resource::<AppTypeRegistry>().read();
+                        let registry = app.resource::<AppTypeRegistry>().read();
 
                         // Get the `ReflectComponent` for the component.
                         if let Some(reflect) =
@@ -133,6 +165,13 @@ pub(super) fn extract(app: &mut World, sub_app: &mut World) {
                     }
                 }
             }
+        }
+
+        // Process the `SubAppTransferQueue` for this SubApp's `DimensionIdentifier`.
+        for components in
+            app.resource_mut::<SubAppTransferQueue>().entry(identifier).or_default().drain(..)
+        {
+            components.write_to(&mut sub_app.spawn_empty());
         }
     });
 }

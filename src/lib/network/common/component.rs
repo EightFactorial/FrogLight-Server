@@ -42,6 +42,15 @@ where
     /// Returns `true` if the [`TypeId`] was not already in the list.
     pub fn add_required_type(&mut self, type_id: TypeId) -> bool { self.components.insert(type_id) }
 
+    /// Returns `true` if the [`Component`] is required.
+    #[inline]
+    #[must_use]
+    pub fn contains<T: Component>(&self) -> bool { self.contains_type_id(TypeId::of::<T>()) }
+
+    /// Returns `true` if the [`TypeId`] is required.
+    #[must_use]
+    pub fn contains_type_id(&self, type_id: TypeId) -> bool { self.components.contains(&type_id) }
+
     /// Check if an entity contains all the required [`Component`]s.
     #[inline]
     #[must_use]

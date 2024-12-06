@@ -10,6 +10,17 @@ pub struct SubAppComponents {
 }
 
 impl SubAppComponents {
+    /// Add a [`Component`] to the set.
+    pub fn push<C: Component + PartialReflect + 'static>(&mut self, component: C) {
+        self.push_dyn(Box::new(component));
+    }
+
+    /// Add a [`Component`] to the set.
+    ///
+    /// # Warning
+    /// This will cause errors if the reflected type is not a [`Component`].
+    pub fn push_dyn(&mut self, reflect: Box<dyn PartialReflect>) { self.components.push(reflect); }
+
     /// Collect all [`Component`]s from an [`Entity`].
     #[must_use]
     pub fn read_from(entity: Entity, world: &World) -> Self {
