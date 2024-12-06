@@ -15,7 +15,7 @@ use crate::{
 };
 
 mod spawn;
-pub use spawn::{PlayerSpawner, PlayerSpawnerPosition};
+pub use spawn::{PlayerSpawner, PlayerSpawnerData};
 
 mod systemset;
 pub use systemset::SpawnerSystemSet;
@@ -66,8 +66,12 @@ pub struct PlayerSpawnerArc(Arc<RwLock<PlayerSpawner>>);
 impl PlayerSpawnerArc {
     /// Create a new [`PlayerSpawnerArc`] with the default spawn point.
     #[must_use]
-    pub fn new(position: BlockPosition, dimension: DimensionIdentifier) -> Self {
-        Self(Arc::new(RwLock::new(PlayerSpawner::new(position, dimension))))
+    pub fn new(
+        game_mode: GameMode,
+        position: BlockPosition,
+        dimension: DimensionIdentifier,
+    ) -> Self {
+        Self(Arc::new(RwLock::new(PlayerSpawner::new(game_mode, position, dimension))))
     }
 
     /// Create a new [`PlayerSpawnerArc`] using the

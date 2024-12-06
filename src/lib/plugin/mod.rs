@@ -23,7 +23,7 @@ pub use taskpool::TASKPOOL_SETTINGS;
 
 use crate::{
     network::{LoginPlugin, SocketPlugin},
-    DimensionPlugin, NetworkPlugins, PlayerPlugins,
+    DimensionPlugin, EntityPlugins, NetworkPlugins, PlayerPlugins, WorldPlugins,
 };
 
 /// A [`PluginGroup`] for creating a server.
@@ -67,8 +67,16 @@ use crate::{
 /// - [`DevToolsPlugin`](bevy::dev_tools::DevToolsPlugin)
 /// - [`DefaultPickingPlugins`](bevy::picking::DefaultPickingPlugins)
 ///
-/// FrogLight-Server's plugins:
+/// [`FrogLight`](froglight)'s plugins:
+/// - [`EntityPlugin`]
+/// - [`RegistryPlugin`]
+/// - [`ResolverPlugin`]
+///
+/// [`FrogLight-Server`](crate)'s plugins:
 /// - [`DimensionPlugin`]
+/// - [`WorldPlugins`]
+/// - [`EntityPlugins`]
+/// - [`NetworkPlugins`]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ServerPlugins {
     /// The address the server will bind to.
@@ -170,8 +178,12 @@ impl PluginGroup for ServerPlugins {
         // Configure the `TaskPoolPlugin` settings.
         builder = builder.set(TaskPoolPlugin { task_pool_options: TASKPOOL_SETTINGS });
 
-        // Add the `Dimension` plugin.
+        // Add the `DimensionPlugin`.
         builder = builder.add(DimensionPlugin);
+        // Add the `WorldPlugins` group.
+        builder = builder.add_group(WorldPlugins);
+        // Add the `EntityPlugins` group.
+        builder = builder.add_group(EntityPlugins);
 
         // Add the v1.21.0 `NetworkPlugins`.
         builder = builder.add_group(NetworkPlugins::<V1_21_0>::from_option(self.socket));

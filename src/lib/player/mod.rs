@@ -5,8 +5,14 @@ use std::marker::PhantomData;
 use bevy::{app::PluginGroupBuilder, prelude::*};
 use froglight::prelude::Version;
 
+pub mod initialize;
+use initialize::PlayerInitializePlugin;
+
 pub mod keepalive;
 use keepalive::KeepAlivePlugin;
+
+pub mod profile;
+use profile::PlayerProfileSyncPlugin;
 
 pub mod settings;
 use settings::PlayerSettingsPlugin;
@@ -23,12 +29,17 @@ where
     KeepAlivePlugin<V>: Plugin,
     PlayerSettingsPlugin<V>: Plugin,
     PlayerSpawnerPlugin<V>: Plugin,
+    PlayerInitializePlugin<V>: Plugin,
 {
     fn build(self) -> PluginGroupBuilder {
         let mut builder = PluginGroupBuilder::start::<Self>();
         builder = builder.add(KeepAlivePlugin::<V>::default());
         builder = builder.add(PlayerSettingsPlugin::<V>::default());
         builder = builder.add(PlayerSpawnerPlugin::<V>::default());
+        builder = builder.add(PlayerInitializePlugin::<V>::default());
+
+        builder = builder.add(PlayerProfileSyncPlugin);
+
         builder
     }
 }

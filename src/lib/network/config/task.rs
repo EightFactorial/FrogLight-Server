@@ -25,7 +25,7 @@ where
     ) {
         for LoginStateEvent { entity, connection } in events.read() {
             if let Some(conn) = connection.lock().take() {
-                debug!("Configuring {} ...", query.get(*entity).unwrap().name);
+                debug!("Configuring {} ...", query.get(*entity).unwrap().username);
                 commands.entity(*entity).insert(ConfigTask::new(conn.configuration()));
             }
         }
@@ -54,7 +54,7 @@ where
     ) {
         for (entity, profile, task) in &query {
             if required.check(entity, world) {
-                debug!("Sending ready to {}", profile.name);
+                debug!("Sending ready to {}", profile.username);
                 V::send_finish(task);
                 commands.entity(entity).insert(CompletedConfig);
             }
@@ -89,12 +89,12 @@ where
         for (entity, profile, mut task) in &mut query {
             match task.poll() {
                 Some(Ok(conn)) => {
-                    debug!("Configured {}", profile.name);
+                    debug!("Configured {}", profile.username);
                     commands.entity(entity).remove::<ConfigTask<V>>();
                     events.send(ConfigStateEvent { entity, connection: Mutex::new(Some(conn)) });
                 }
                 Some(Err(err)) => {
-                    error!("Configuration failed for {}: {err}", profile.name);
+                    error!("Configuration failed for {}: {err}", profile.username);
                     debug!("Despawning Entity {entity}");
                     commands.entity(entity).despawn_recursive();
                 }

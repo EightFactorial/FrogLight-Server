@@ -8,7 +8,7 @@ use froglight::{
     prelude::{entity::Player, *},
 };
 
-use crate::dimension::{All, DimensionApp, Network};
+use crate::dimension::{All, DimensionApp};
 
 mod version;
 pub use version::PlayTrait;
@@ -75,7 +75,7 @@ where
         // Add dimension systems
         app.in_dimension(All, |app| {
             app.add_systems(
-                Network,
+                First,
                 PlayTask::<V>::sub_queue_and_receive_packets
                     .run_if(any_with_component::<Player>)
                     .ambiguous_with_all(),

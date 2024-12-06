@@ -2,6 +2,9 @@
 
 use bevy::prelude::*;
 
+mod list;
+pub use list::DimensionList;
+
 mod reflect;
 pub use reflect::{DimensionTrait, MonsterSpawnLightLevel, ReflectDimension};
 
@@ -21,4 +24,6 @@ impl Plugin for DimensionPlugin {
 
         subapp::build(app);
     }
+
+    fn finish(&self, app: &mut App) { list::finish(app); }
 }

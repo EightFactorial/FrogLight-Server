@@ -33,7 +33,7 @@ where
     ) {
         for ConfigStateEvent { entity, connection } in events.read() {
             if let Some(conn) = connection.lock().take() {
-                debug!("Starting play session for {} ...", query.get(*entity).unwrap().name);
+                debug!("Starting play session for {} ...", query.get(*entity).unwrap().username);
                 commands.entity(*entity).insert(PlayTask::<V>::new(conn));
             }
         }
@@ -49,7 +49,7 @@ where
     ) {
         for (entity, profile, task) in &query {
             if required.check(entity, world) {
-                debug!("Sending reconfigure to {}", profile.name);
+                debug!("Sending reconfigure to {}", profile.username);
                 V::send_reconfigure(task);
                 commands.entity(entity).insert(CompletedPlay);
             }
@@ -132,16 +132,16 @@ where
         for (entity, profile, mut task) in &mut query {
             match task.poll() {
                 Some(Ok(_conn)) => {
-                    debug!("Reconfiguring {}", profile.name);
+                    debug!("Reconfiguring {}", profile.username);
                     commands.entity(entity).remove::<PlayTask<V>>();
                 }
                 Some(Err(ConnectionError::ConnectionClosed)) => {
-                    info!("Disconnected {}", profile.name);
+                    info!("Disconnected {}", profile.username);
                     debug!("Despawning Entity {entity}");
                     commands.entity(entity).despawn_recursive();
                 }
                 Some(Err(err)) => {
-                    error!("Error for {}: {err}", profile.name);
+                    error!("Error for {}: {err}", profile.username);
                     debug!("Despawning Entity {entity}");
                     commands.entity(entity).despawn_recursive();
                 }

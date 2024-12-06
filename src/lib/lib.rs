@@ -2,6 +2,9 @@
 #![feature(build_hasher_default_const_new)]
 #![feature(const_type_id)]
 
+pub mod entity;
+pub use entity::EntityPlugins;
+
 pub mod dimension;
 pub use dimension::DimensionPlugin;
 
@@ -13,3 +16,6 @@ pub use player::PlayerPlugins;
 
 pub mod plugin;
 pub use plugin::ServerPlugins;
+
+pub mod world;
+pub use world::WorldPlugins;

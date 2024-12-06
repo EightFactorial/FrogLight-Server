@@ -119,7 +119,7 @@ impl KeepAliveCounter {
 
             // If the connection is lost, despawn the entity.
             if keepalive.is_lost() {
-                warn!("Connection timed out for {}", profile.name);
+                warn!("Connection timed out for {}", profile.username);
                 debug!("Despawning Entity {entity}");
                 commands.entity(entity).despawn_recursive();
                 continue;
@@ -152,7 +152,7 @@ impl KeepAliveCounter {
             if let Ok((profile, mut keepalive)) = query.get_mut(event.entity) {
                 if let Some(result) = V::recv_config(&mut keepalive, event) {
                     if !result {
-                        warn!("Invalid keep-alive received from {}", profile.name);
+                        warn!("Invalid keep-alive received from {}", profile.username);
                         debug!("Despawning Entity {}", event.entity);
                         commands.entity(event.entity).despawn_recursive();
                     }
@@ -165,7 +165,7 @@ impl KeepAliveCounter {
             if let Ok((profile, mut keepalive)) = query.get_mut(event.entity) {
                 if let Some(result) = V::recv_play(&mut keepalive, event) {
                     if !result {
-                        warn!("Invalid keep-alive received from {}", profile.name);
+                        warn!("Invalid keep-alive received from {}", profile.username);
                         debug!("Despawning Entity {}", event.entity);
                         commands.entity(event.entity).despawn_recursive();
                     }

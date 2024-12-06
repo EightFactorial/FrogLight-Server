@@ -48,7 +48,7 @@ where
                         } else {
                             request.uuid
                         },
-                        name: request.username.clone(),
+                        username: request.username.to_string(),
                         properties: HashMap::new(),
                     },
                     LoginTask::<V>::new(conn, auth.clone(), resolver.clone()),
@@ -69,7 +69,7 @@ where
     ) {
         for (entity, profile, task) in &query {
             if required.check(entity, world) {
-                debug!("Sending profile to {}", profile.name);
+                debug!("Sending profile to {}", profile.username);
                 V::send_profile(profile, task);
                 commands.entity(entity).insert(CompletedLogin);
             }
@@ -104,12 +104,12 @@ where
         for (entity, profile, mut task) in &mut query {
             match task.poll() {
                 Some(Ok(conn)) => {
-                    info!("Logged in {}", profile.name);
+                    info!("Logged in {}", profile.username);
                     commands.entity(entity).remove::<LoginTask<V>>();
                     events.send(LoginStateEvent::<V>::new(entity, conn));
                 }
                 Some(Err(err)) => {
-                    error!("Login failed for {}: {err}", profile.name);
+                    error!("Login failed for {}: {err}", profile.username);
                     debug!("Despawning Entity {entity}");
                     commands.entity(entity).despawn_recursive();
                 }
