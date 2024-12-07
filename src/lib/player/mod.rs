@@ -12,7 +12,7 @@ pub mod keepalive;
 use keepalive::KeepAlivePlugin;
 
 pub mod movement;
-// use movement::PlayerMovementPlugin;
+use movement::PlayerMovementPlugin;
 
 pub mod profile;
 use profile::PlayerProfileSyncPlugin;
@@ -33,6 +33,7 @@ where
     PlayerSettingsPlugin<V>: Plugin,
     PlayerSpawnerPlugin<V>: Plugin,
     PlayerInitializePlugin<V>: Plugin,
+    PlayerMovementPlugin<V>: Plugin,
 {
     fn build(self) -> PluginGroupBuilder {
         let mut builder = PluginGroupBuilder::start::<Self>();
@@ -40,6 +41,7 @@ where
         builder = builder.add(PlayerSettingsPlugin::<V>::default());
         builder = builder.add(PlayerSpawnerPlugin::<V>::default());
         builder = builder.add(PlayerInitializePlugin::<V>::default());
+        builder = builder.add(PlayerMovementPlugin::<V>::default());
 
         builder = builder.add(PlayerProfileSyncPlugin);
 

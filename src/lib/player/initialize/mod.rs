@@ -40,12 +40,14 @@ where
 pub struct HasJoinPacket;
 
 /// A system that initializes new player connections.
+#[expect(clippy::type_complexity)]
 fn initialize_player_connection<V: Version + InitializeTrait>(
-    query: Query<Entity, Added<MainAppMarker>>,
+    query: Query<(Entity, &GameProfile), (Added<MainAppMarker>, Without<HasJoinPacket>)>,
     world: &World,
     mut commands: Commands,
 ) {
-    for entity in &query {
+    for (entity, profile) in &query {
+        debug!("Initializing player {}", profile.username);
         V::initialize(entity, world, &mut commands);
     }
 }

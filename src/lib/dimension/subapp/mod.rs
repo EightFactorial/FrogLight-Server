@@ -85,6 +85,12 @@ fn build_subapp(app: &mut App) -> SubApp {
 
     // Initialize the `EventRegistry`
     sub_app.init_resource::<EventRegistry>();
+    sub_app.add_systems(
+        First,
+        bevy::ecs::event::event_update_system
+            .in_set(bevy::ecs::event::EventUpdates)
+            .run_if(bevy::ecs::event::event_update_condition),
+    );
 
     // Add the `MainSchedulePlugin`
     sub_app.add_plugins(MainSchedulePlugin);

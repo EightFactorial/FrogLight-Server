@@ -3,12 +3,9 @@
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
-use froglight::{
-    network::connection::NetworkDirection,
-    prelude::{entity::Player, *},
-};
+use froglight::{network::connection::NetworkDirection, prelude::*};
 
-use crate::dimension::{All, DimensionApp};
+use crate::dimension::{subapp::MainAppMarker, All, DimensionApp};
 
 mod version;
 pub use version::PlayTrait;
@@ -77,7 +74,7 @@ where
             app.add_systems(
                 First,
                 PlayTask::<V>::sub_queue_and_receive_packets
-                    .run_if(any_with_component::<Player>)
+                    .run_if(any_with_component::<MainAppMarker>)
                     .ambiguous_with_all(),
             );
         });

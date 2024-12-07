@@ -74,9 +74,9 @@ where
             let mut queue = queue.client.lock();
             for (entity, marker, tracker, task) in &query {
                 while let Some(packet) = task.recv() {
-                    // Send the event in the main App
+                    // Send a copy of the packet event in the main App
                     events.send(PlayClientPacketEvent::new(entity, packet.clone()));
-                    // Send the packet to the SubApp queue
+                    // Send the packet event to the SubApp queue
                     queue
                         .entry(***marker)
                         .or_default()
@@ -102,22 +102,20 @@ where
         label: Res<DimensionIdentifier>,
         queue: ResMut<PlayPacketEventQueue<V>>,
         mut client: EventWriter<PlayClientPacketEvent<V>>,
-        mut server: EventReader<PlayServerPacketEvent<V>>,
+        mut server: ResMut<Events<PlayServerPacketEvent<V>>>,
     ) {
         // Receive serverbound packets
         client.send_batch(queue.client.lock().entry(**label).or_default().drain(..));
 
         // Send clientbound packets
-        queue.server.lock().extend(server.read().filter_map(
+        queue.server.lock().extend(server.drain().filter_map(
             |PlayServerPacketEvent { entity, packet }| {
-                query.get(*entity).map_or_else(
+                query.get(entity).map_or_else(
                     |_| {
                         warn!("Received packet for non-existent connection!");
                         None
                     },
-                    |marker| {
-                        Some(PlayServerPacketEvent { entity: **marker, packet: packet.clone() })
-                    },
+                    |marker| Some(PlayServerPacketEvent { entity: **marker, packet }),
                 )
             },
         ));
