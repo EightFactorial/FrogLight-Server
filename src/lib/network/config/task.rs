@@ -6,11 +6,12 @@ use froglight::{
 use parking_lot::Mutex;
 
 use super::{
-    CompletedConfig, ConfigPacketEvent, ConfigRequiredComponents, ConfigTask, ConfigTrait,
+    CompletedConfig, ConfigPacketEvent, ConfigRegistryTrait, ConfigRequiredComponents, ConfigTask,
+    ConfigTrait, HasRegistries,
 };
 use crate::network::{common::channel, config::ConfigStateEvent, login::LoginStateEvent};
 
-impl<V: Version + ConfigTrait> ConfigTask<V>
+impl<V: Version + ConfigTrait + ConfigRegistryTrait> ConfigTask<V>
 where
     Clientbound: NetworkDirection<V, Login> + NetworkDirection<V, Configuration>,
     Login: State<V>,
@@ -32,7 +33,7 @@ where
     }
 }
 
-impl<V: Version + ConfigTrait> ConfigTask<V>
+impl<V: Version + ConfigTrait + ConfigRegistryTrait> ConfigTask<V>
 where
     Clientbound: NetworkDirection<V, Configuration>,
     Configuration: State<V>,
@@ -42,6 +43,19 @@ where
     pub fn new(conn: Connection<V, Configuration, Clientbound>) -> Self {
         let (send, recv) = channel();
         Self::spawn(send, V::config(conn, recv))
+    }
+
+    /// A system that sends registries to clients that
+    /// have not received them yet.
+    pub fn send_registries(
+        query: Query<(Entity, &GameProfile, &ConfigTask<V>), Without<HasRegistries>>,
+        mut commands: Commands,
+    ) {
+        for (entity, profile, task) in &query {
+            debug!("Sending registries to {}", profile.username);
+            V::send_registries(task);
+            commands.entity(entity).insert(HasRegistries);
+        }
     }
 
     /// A system that completes all configurations that have the required

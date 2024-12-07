@@ -21,3 +21,8 @@ pub type ConfigTask<V> = ConnectionTask<V, Configuration>;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
 #[component(storage = "SparseSet")]
 pub struct CompletedConfig;
+
+/// A marker component that indicates that the client was sent the registries.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[component(storage = "SparseSet")]
+pub struct HasRegistries;
