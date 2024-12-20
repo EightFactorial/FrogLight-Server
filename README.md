@@ -11,6 +11,30 @@ A proof of concept Minecraft server written using FrogLight.
 
 This project is only for fun and is not intended to be *the next big thing*.
 
+## Feature List
+
+- [x] Connections
+  - [x] Bind to Address
+  - [x] Status Requests
+  - [x] Accept Connections
+  - [x] Login/Configuration
+    - [ ] Registry Values
+    - [ ] Authentication
+      - [ ] Encryption 
+      - [x] Mojang
+      - [x] Custom
+  - [ ] Play Session
+- [x] Dimensions
+  - [x] Run in Parallel
+  - [x] Entity Transfer
+    - [x] Sync Components
+- [ ] World
+  - [ ] Save/Load
+  - [ ] Chunk Generation
+  - [ ] Block Updates
+  - [ ] Entities
+  - [ ] Inventories
+
 ## Version
 
 Compatible with Minecraft v1.21.1, but support for other versions can be added.
