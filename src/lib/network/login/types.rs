@@ -1,7 +1,8 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 use bevy::prelude::{Component, Deref, Resource};
 use compact_str::CompactString;
+use derive_more::derive::From;
 use froglight::prelude::{Login, Version};
 use parking_lot::RwLock;
 
@@ -27,6 +28,10 @@ pub struct AuthenticationServer<V: Version> {
     address: Arc<RwLock<Option<CompactString>>>,
     _phantom: std::marker::PhantomData<V>,
 }
+
+/// The instant a connection was established.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Deref, From)]
+pub struct ConnectionInstant(Instant);
 
 /// A marker component that indicates that the login process has been completed.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]

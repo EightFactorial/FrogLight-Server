@@ -8,7 +8,6 @@ use froglight::{
         V1_21_0,
     },
     prelude::{ChunkPosition, EntityId, GameProfile, SpawnInformation},
-    world::Chunk,
 };
 
 use super::InitializeTrait;
@@ -66,10 +65,7 @@ impl InitializeTrait for V1_21_0 {
 
         entity_com.insert(Transform::from_translation(Vec3::from(block_pos)));
 
-        let chunk_pos = ChunkPosition::new(
-            block_pos.x() / i64::from(Chunk::WIDTH),
-            block_pos.z() / i64::from(Chunk::DEPTH),
-        );
+        let chunk_pos = ChunkPosition::from_block(block_pos);
         entity_com.insert(chunk_pos);
 
         // Send the initial game join packet
@@ -120,13 +116,11 @@ impl InitializeTrait for V1_21_0 {
             }),
         ));
 
-        #[expect(clippy::cast_sign_loss)]
-        #[expect(clippy::cast_possible_truncation)]
         commands.send_event(PlayServerPacketEvent::<Self>::new(
             entity,
             PlayClientboundPackets::ChunkRenderDistanceCenter(ChunkRenderDistanceCenterPacket {
-                chunk_x: chunk_pos.x() as u32,
-                chunk_z: chunk_pos.z() as u32,
+                chunk_x: chunk_pos.x_i32(),
+                chunk_z: chunk_pos.z_i32(),
             }),
         ));
     }

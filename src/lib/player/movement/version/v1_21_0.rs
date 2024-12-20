@@ -19,13 +19,12 @@ use crate::{
 };
 
 impl MovementTrait for V1_21_0 {
-    #[expect(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn send_center(entity: Entity, chunk: ChunkPosition, commands: &mut Commands) {
         commands.send_event(PlayServerPacketEvent::<Self>::new(
             entity,
             PlayClientboundPackets::ChunkRenderDistanceCenter(ChunkRenderDistanceCenterPacket {
-                chunk_x: chunk.x() as u32,
-                chunk_z: chunk.z() as u32,
+                chunk_x: chunk.x_i32(),
+                chunk_z: chunk.z_i32(),
             }),
         ));
     }

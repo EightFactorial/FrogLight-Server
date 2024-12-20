@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use bevy::{prelude::*, utils::HashMap};
 use froglight::{
     network::connection::{AccountInformation, NetworkDirection},
@@ -9,7 +11,7 @@ use super::{
 };
 use crate::network::{
     common::channel,
-    login::{CompletedLogin, LoginStateEvent},
+    login::{CompletedLogin, ConnectionInstant, LoginStateEvent},
     socket::ConnectionRequestEvent,
 };
 
@@ -42,6 +44,7 @@ where
                 debug!("Logging in {} ...", request.username);
                 let mut entity = commands.spawn((
                     request.information.clone(),
+                    ConnectionInstant::from(Instant::now()),
                     GameProfile {
                         uuid: if auth.read().is_none() {
                             AccountInformation::offline_uuid(&request.username)

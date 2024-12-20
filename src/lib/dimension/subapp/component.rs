@@ -4,12 +4,28 @@ use bevy::{
 };
 
 /// A set of [`Component`]s received from a [`SubApp`].
-#[derive(Debug, Default, Component)]
+#[derive(Debug, Component)]
 pub struct SubAppComponents {
     components: Vec<Box<dyn PartialReflect>>,
 }
 
+impl Default for SubAppComponents {
+    fn default() -> Self { Self::new_empty() }
+}
+
 impl SubAppComponents {
+    /// Create an empty [`SubAppComponents`].
+    #[must_use]
+    pub const fn new_empty() -> Self { Self { components: Vec::new() } }
+
+    /// Create a [`SubAppComponents`] from a single [`Component`].
+    #[must_use]
+    pub fn from_component(component: impl Component + PartialReflect + 'static) -> Self {
+        let mut components = Self::new_empty();
+        components.push(component);
+        components
+    }
+
     /// Add a [`Component`] to the set.
     pub fn push<C: Component + PartialReflect + 'static>(&mut self, component: C) {
         self.push_dyn(Box::new(component));
@@ -20,7 +36,9 @@ impl SubAppComponents {
     /// # Warning
     /// This will cause errors if the reflected type is not a [`Component`].
     pub fn push_dyn(&mut self, reflect: Box<dyn PartialReflect>) { self.components.push(reflect); }
+}
 
+impl SubAppComponents {
     /// Collect all [`Component`]s from an [`Entity`].
     #[must_use]
     pub fn read_from(entity: Entity, world: &World) -> Self {

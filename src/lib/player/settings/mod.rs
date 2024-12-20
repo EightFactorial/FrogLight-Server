@@ -152,9 +152,7 @@ impl ClientSettings {
             }
             // Create and insert a new `SubAppComponents`.
             Ok((None, None, None)) => {
-                let mut components = SubAppComponents::default();
-                components.push(settings);
-                commands.entity(entity).insert(components);
+                commands.entity(entity).insert(SubAppComponents::from_component(settings));
             }
             _ => {
                 warn!("Failed to apply ClientSettings: Unexpected query results");

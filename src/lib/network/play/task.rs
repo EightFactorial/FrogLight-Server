@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use bevy::prelude::*;
 use froglight::{network::connection::NetworkDirection, prelude::*};
 
@@ -7,7 +9,7 @@ use super::{
 };
 use crate::{
     dimension::subapp::{DimensionIdentifier, DimensionMarker, MainAppMarker, SubAppTracker},
-    network::{common::channel, config::ConfigStateEvent},
+    network::{common::channel, config::ConfigStateEvent, login::ConnectionInstant},
 };
 
 impl<V: Version + PlayTrait> PlayTask<V>
@@ -25,16 +27,37 @@ where
 
     /// A system that receives configured connections and
     /// starts play sessions for them.
-    #[expect(clippy::missing_panics_doc)]
     pub fn receive_configured(
-        query: Query<&GameProfile>,
+        query: Query<(&GameProfile, &ConnectionInstant)>,
         mut events: EventReader<ConfigStateEvent<V>>,
         mut commands: Commands,
     ) {
         for ConfigStateEvent { entity, connection } in events.read() {
-            if let Some(conn) = connection.lock().take() {
-                debug!("Starting play session for {} ...", query.get(*entity).unwrap().username);
-                commands.entity(*entity).insert(PlayTask::<V>::new(conn));
+            if let Ok((profile, instant)) = query.get(*entity) {
+                if let Some(conn) = connection.lock().take() {
+                    let elapsed = Instant::now().duration_since(**instant);
+                    if elapsed.as_secs_f32() >= 0.1 {
+                        info_once!(
+                            "Starting play session for {} ({:.2}s)",
+                            profile.username,
+                            elapsed.as_secs_f32()
+                        );
+                    } else if elapsed.as_millis() > 0 {
+                        info_once!(
+                            "Starting play session for {} ({}ms)",
+                            profile.username,
+                            elapsed.as_millis()
+                        );
+                    } else {
+                        info_once!(
+                            "Starting play session for {} ({}µs)",
+                            profile.username,
+                            elapsed.as_micros()
+                        );
+                    }
+
+                    commands.entity(*entity).insert(PlayTask::<V>::new(conn));
+                }
             }
         }
     }

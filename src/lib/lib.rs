@@ -2,6 +2,9 @@
 #![feature(build_hasher_default_const_new)]
 #![feature(const_type_id)]
 
+#[cfg(feature = "mimalloc")]
+pub use mimalloc::MiMalloc;
+
 pub mod entity;
 pub use entity::EntityPlugins;
 

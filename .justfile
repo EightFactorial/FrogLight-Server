@@ -27,7 +27,7 @@ run-release: (run-profile "release" "")
 # Run build with specified profile
 [private]
 run-profile profile="dev" args="":
-  cargo run --bin froglight-server --profile {{profile}} {{args}}
+  cargo run --bin froglight-server --profile {{profile}} --features=mimalloc {{args}}
 
 # Clean build artifacts
 clean:

@@ -98,3 +98,12 @@ froglight = { workspace = true }
 futures-lite = { workspace = true }
 parking_lot = { workspace = true }
 simdnbt = { workspace = true }
+mimalloc = { version = "0.1", optional = true }
+
+[features]
+default = []
+
+# Enable mimalloc for better performance
+#
+# Note: Requires setting MiMalloc as the global allocator
+mimalloc = ["dep:mimalloc"]

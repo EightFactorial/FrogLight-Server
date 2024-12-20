@@ -44,9 +44,7 @@ impl PlayerProfileSyncPlugin {
             if let Some(mut components) = components {
                 components.push(profile.clone());
             } else {
-                let mut components = SubAppComponents::default();
-                components.push(profile.clone());
-                commands.entity(entity).insert(components);
+                commands.entity(entity).insert(SubAppComponents::from_component(profile.clone()));
             }
         }
     }

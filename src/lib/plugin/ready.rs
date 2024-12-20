@@ -19,6 +19,9 @@ impl Plugin for ReadyPlugin {
 
 impl ReadyPlugin {
     fn log_ready() {
+        #[cfg(feature = "mimalloc")]
+        info_once!("Using MiMalloc as the global allocator!");
+
         let elapsed = STARTUP.elapsed();
         if elapsed.as_secs_f32() >= 0.1 {
             info_once!("Done ({:.2}s)!", elapsed.as_secs_f32());
