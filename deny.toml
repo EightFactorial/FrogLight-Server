@@ -51,9 +51,6 @@ version = "=0.4.2"
 name = "hashbrown"
 version = "=0.14.5"
 [[bans.skip]]
-name = "idna"
-version = "=0.4.0"
-[[bans.skip]]
 name = "regex-automata"
 version = "=0.1.10"
 [[bans.skip]]
